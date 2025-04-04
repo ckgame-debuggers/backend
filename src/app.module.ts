@@ -5,6 +5,7 @@ import { AuthModule } from './api/auth/auth.module';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import { ConfigModule } from '@nestjs/config';
 import { DatabaseConfigService } from './providers/database/database.config';
+import { SmtpModule } from './api/smtp/smtp.module';
 
 @Module({
   imports: [
@@ -17,6 +18,7 @@ import { DatabaseConfigService } from './providers/database/database.config';
       useClass: DatabaseConfigService,
     }),
     AuthModule,
+    SmtpModule,
   ],
   controllers: [AppController],
   providers: [AppService],

@@ -1,4 +1,5 @@
-import { Column, Entity, PrimaryGeneratedColumn } from 'typeorm';
+import { Column, Entity, OneToMany, PrimaryGeneratedColumn } from 'typeorm';
+import { RefreshEntity } from './refresh.entity';
 
 @Entity('users')
 export class UserEntity {
@@ -20,9 +21,12 @@ export class UserEntity {
   @Column()
   password: string;
 
-  @Column({ length: 15 })
-  tel: string;
+  @Column({ length: 15, nullable: true })
+  tel?: string;
 
-  @Column({ type: 'enum', enum: ['male', 'female'] })
-  gender: 'male' | 'female';
+  @Column({ type: 'enum', enum: ['male', 'female'], nullable: true })
+  gender?: 'male' | 'female';
+
+  @OneToMany(() => RefreshEntity, (refresh) => refresh.user)
+  refreshTokens: RefreshEntity[];
 }
