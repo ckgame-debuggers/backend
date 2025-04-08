@@ -14,5 +14,6 @@ export default class LoginDto {
   deviceName: string;
 
   @IsNotEmpty()
+  @IsString()
   location: string;
 }

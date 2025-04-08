@@ -17,4 +17,8 @@ export default class RegisterDto {
   @IsNotEmpty()
   @IsString()
   password: string;
+
+  @IsNotEmpty()
+  @IsString()
+  certCode: string;
 }

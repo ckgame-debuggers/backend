@@ -15,10 +15,11 @@ import LoginDto from 'src/common/dto/auth/login.dto';
 import { JwtPayload } from 'src/common/dto/auth/jwt-payload.dto';
 import { RefreshEntity } from 'src/common/entities/user/refresh.entity';
 import { RefreshDto } from 'src/common/dto/auth/refresh.dto';
+import { EmailCertEntity } from 'src/common/entities/user/email-cert.entity';
 
 @Injectable()
 export class AuthService {
-  private logger = new Logger(AuthService.name);
+  private readonly logger = new Logger(AuthService.name);
   constructor(
     private readonly jwtService: JwtService,
     private readonly dataSource: DataSource,
@@ -34,6 +35,7 @@ export class AuthService {
     registerDto: RegisterDto,
   ): Promise<ResultType<UserEntity>> {
     const userRepository = this.dataSource.getRepository(UserEntity);
+    const certRepository = this.dataSource.getRepository(EmailCertEntity);
 
     if (!registerDto.email.endsWith('@chungkang.academy')) {
       throw new ConflictException('Email must end with @chungkang.academy.');
@@ -44,6 +46,13 @@ export class AuthService {
       throw new ConflictException('School number must be 9 characters.');
     }
 
+    const certInfo = await certRepository.findBy({
+      email: registerDto.email,
+      value: registerDto.certCode,
+    });
+    if (!certInfo) {
+      throw new ConflictException('Invalid certification code.');
+    }
     const oldUser = await userRepository.findOneBy({
       email: registerDto.email,
     });
@@ -62,7 +71,7 @@ export class AuthService {
       fullname: registerDto.fullname,
       schoolNumber: registerDto.email.split('@')[0],
     });
-    userRepository.save(generated);
+    await userRepository.save(generated);
     this.logger.log(`Created new user with : ${registerDto.email}`);
     return {
       status: 'success',
@@ -195,7 +204,7 @@ export class AuthService {
       location: loginDto.location,
       user: user,
     });
-    refreshRepository.save(generated);
+    await refreshRepository.save(generated);
     this.logger.log(
       `Successfully saved new refresh token for user : ${user.email}`,
     );
@@ -220,12 +229,7 @@ export class AuthService {
 
     const token = refreshDto.refreshToken;
     let decoded: { id: number };
-    try {
-      decoded = this.jwtService.verify(token);
-    } catch (error) {
-      this.logger.warn(error.message);
-      throw new UnauthorizedException(error.message);
-    }
+    decoded = this.jwtService.verify(token);
 
     const userId = decoded.id;
     const user = await userRepository.findOneBy({ id: userId });

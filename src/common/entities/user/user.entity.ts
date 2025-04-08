@@ -1,5 +1,8 @@
 import { Column, Entity, OneToMany, PrimaryGeneratedColumn } from 'typeorm';
 import { RefreshEntity } from './refresh.entity';
+import { CrewMemberEntity } from '../crew/crew-member';
+import { CrewApplicationEntity } from '../crew/crew-application.entity';
+import { CrewCreateRequestEntity } from '../crew/crew-create-request.entity';
 
 @Entity('users')
 export class UserEntity {
@@ -21,6 +24,9 @@ export class UserEntity {
   @Column()
   password: string;
 
+  @Column({ default: 0 })
+  permission: number;
+
   @Column({ length: 15, nullable: true })
   tel?: string;
 
@@ -29,4 +35,13 @@ export class UserEntity {
 
   @OneToMany(() => RefreshEntity, (refresh) => refresh.user)
   refreshTokens: RefreshEntity[];
+
+  @OneToMany(() => CrewMemberEntity, (crew) => crew.user)
+  crew: CrewMemberEntity[];
+
+  @OneToMany(() => CrewCreateRequestEntity, (req) => req.user)
+  crewCreateRequest: CrewCreateRequestEntity[];
+
+  @OneToMany(() => CrewApplicationEntity, (application) => application.user)
+  crewApplication: CrewApplicationEntity[];
 }
