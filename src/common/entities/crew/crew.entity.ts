@@ -1,5 +1,5 @@
 import { Column, Entity, OneToMany, PrimaryGeneratedColumn } from 'typeorm';
-import { CrewMemberEntity } from './crew-member';
+import { CrewMemberEntity } from './crew-member.entity';
 import { UserEntity } from '../user/user.entity';
 import { CrewServerEntity } from './crew-server.entity';
 import { CrewApplicationEntity } from './crew-application.entity';
@@ -24,8 +24,8 @@ export class CrewEntity {
   @Column()
   createdAt: string;
 
-  @OneToMany(() => CrewMemberEntity, (user) => user.crew)
-  user: UserEntity[];
+  @OneToMany(() => CrewMemberEntity, (crewMember) => crewMember.crew)
+  members: CrewMemberEntity[];
 
   @OneToMany(() => CrewServerEntity, (server) => server.crew)
   server: CrewServerEntity[];

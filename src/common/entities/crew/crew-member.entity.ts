@@ -13,7 +13,7 @@ export class CrewMemberEntity {
   @ManyToOne(() => UserEntity, (user) => user.crew)
   user: UserEntity;
 
-  @ManyToOne(() => CrewEntity, (crew) => crew.user)
+  @ManyToOne(() => CrewEntity, (crew) => crew.members)
   crew: CrewEntity;
 
   @Column({

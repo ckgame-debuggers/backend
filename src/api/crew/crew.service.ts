@@ -12,7 +12,7 @@ import { CrewCreateDto } from 'src/common/dto/crew/create.dto';
 import { CrewUpdateDto } from 'src/common/dto/crew/update.dto';
 import { CrewApplicationEntity } from 'src/common/entities/crew/crew-application.entity';
 import { CrewCreateRequestEntity } from 'src/common/entities/crew/crew-create-request.entity';
-import { CrewMemberEntity } from 'src/common/entities/crew/crew-member';
+import { CrewMemberEntity } from 'src/common/entities/crew/crew-member.entity';
 import { CrewEntity } from 'src/common/entities/crew/crew.entity';
 import { UserEntity } from 'src/common/entities/user/user.entity';
 import { DataSource } from 'typeorm';

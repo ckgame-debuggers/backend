@@ -1,6 +1,6 @@
 import { Column, Entity, OneToMany, PrimaryGeneratedColumn } from 'typeorm';
 import { RefreshEntity } from './refresh.entity';
-import { CrewMemberEntity } from '../crew/crew-member';
+import { CrewMemberEntity } from '../crew/crew-member.entity';
 import { CrewApplicationEntity } from '../crew/crew-application.entity';
 import { CrewCreateRequestEntity } from '../crew/crew-create-request.entity';
 

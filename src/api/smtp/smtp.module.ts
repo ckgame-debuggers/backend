@@ -7,20 +7,20 @@ import { ConfigService } from '@nestjs/config';
 @Module({
   imports: [
     MailerModule.forRootAsync({
-      imports: [ConfigService],
+      inject: [ConfigService],
       useFactory: (configService: ConfigService): MailerOptions => {
         return {
           transport: {
-            host: 'smtp.gmail.com',
-            port: 587,
+            host: configService.get<string>('MAIL_HOST'),
+            port: configService.get<number>('MAIN_PORT'),
             secure: false,
             auth: {
-              user: '',
-              pass: 'password',
+              user: configService.get<string>('MAIL_USER'),
+              pass: configService.get<string>('MAIL_PASS'),
             },
           },
           defaults: {
-            from: `"DPUS" <dpus.noreply@gmail.com>`,
+            from: configService.get<string>('MAIL_FROM'),
           },
         };
       },
