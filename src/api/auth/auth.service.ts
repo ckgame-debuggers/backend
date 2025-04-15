@@ -1,5 +1,6 @@
 import {
   ConflictException,
+  ForbiddenException,
   Injectable,
   Logger,
   NotFoundException,
@@ -50,9 +51,13 @@ export class AuthService {
       email: registerDto.email,
       value: registerDto.certCode,
     });
-    if (!certInfo) {
+    if (!certInfo || certInfo.length === 0) {
       throw new ConflictException('Invalid certification code.');
     }
+    const allCertTries = await certRepository.findBy({
+      email: registerDto.email,
+    });
+    await certRepository.remove(allCertTries);
     const oldUser = await userRepository.findOneBy({
       email: registerDto.email,
     });
@@ -187,9 +192,51 @@ export class AuthService {
     loginDto: LoginDto,
   ): Promise<ResultType<string>> {
     const refreshRepository = this.dataSource.getRepository(RefreshEntity);
+    const existingTokens = await refreshRepository.find({
+      where: {
+        user: { id: user.id },
+        deviceName: loginDto.deviceName,
+      },
+    });
+
+    let similarToken: RefreshEntity | undefined;
+
+    if (loginDto.location === 'undefined') {
+      similarToken = existingTokens.find(
+        (token) => token.location === 'undefined',
+      );
+    } else {
+      const isLocationSimilar = (loc1: string, loc2: string) => {
+        const [lat1, lon1] = loc1.split(' ').map(Number);
+        const [lat2, lon2] = loc2.split(' ').map(Number);
+        const distance = Math.sqrt(
+          Math.pow(lat1 - lat2, 2) + Math.pow(lon1 - lon2, 2),
+        );
+        return distance < 0.01;
+      };
+
+      similarToken = existingTokens.find((token) =>
+        isLocationSimilar(token.location, loginDto.location),
+      );
+    }
+
+    if (similarToken && similarToken.exp && similarToken.exp > new Date()) {
+      this.logger.log(`Using existing refresh token for use r : ${user.email}`);
+      return {
+        status: 'success',
+        message: `Using existing refresh token for user : ${user.email}`,
+        data: similarToken.value,
+        timestamp: new Date(),
+      };
+    }
+
     const payload: { id: number } = { id: user.id };
-    const newToken = await this.jwtService.signAsync(payload);
+    const expiresIn = this.configService.get<string>(
+      'JWT_REFRESH_EXPIRATION_TIME',
+    );
+    const newToken = await this.jwtService.signAsync(payload, { expiresIn });
     this.logger.log(`Generated new refresh token for user : ${user.email}`);
+
     const currentDate = new Date();
     const currentRefreshTokenExp = new Date(
       currentDate.getTime() +
@@ -204,10 +251,12 @@ export class AuthService {
       location: loginDto.location,
       user: user,
     });
+
     await refreshRepository.save(generated);
     this.logger.log(
       `Successfully saved new refresh token for user : ${user.email}`,
     );
+
     return {
       status: 'success',
       message: `Successfully generated new token for user : ${user.email}`,
@@ -229,7 +278,12 @@ export class AuthService {
 
     const token = refreshDto.refreshToken;
     let decoded: { id: number };
-    decoded = this.jwtService.verify(token);
+    try {
+      decoded = this.jwtService.verify(token);
+    } catch (error) {
+      this.logger.error('Refresh token verification failed: Token expired');
+      throw new UnauthorizedException('Refresh token has expired');
+    }
 
     const userId = decoded.id;
     const user = await userRepository.findOneBy({ id: userId });
@@ -242,6 +296,13 @@ export class AuthService {
     });
     if (!refreshData) {
       throw new UnauthorizedException('Could not found current token data.');
+    }
+
+    // Check token expiration
+    if (refreshData.exp && refreshData.exp < new Date()) {
+      await refreshRepository.remove(refreshData);
+      this.logger.error(`Refresh token expired for user: ${user.email}`);
+      throw new UnauthorizedException('Refresh token has expired');
     }
 
     const accessToken = (await this.generateAccessToken(user)).data || '';

@@ -9,6 +9,7 @@ import { ConfigService } from '@nestjs/config';
 import { verifyEmailTemplate } from 'src/common/consts/smtp/email-template';
 import GetCodeDto from 'src/common/dto/cert/get-code.dto';
 import { EmailCertEntity } from 'src/common/entities/user/email-cert.entity';
+import { UserEntity } from 'src/common/entities/user/user.entity';
 import { DataSource } from 'typeorm';
 
 @Injectable()
@@ -28,6 +29,7 @@ export class SmtpService {
     getCodeDto: GetCodeDto,
   ): Promise<ResultType<EmailCertEntity>> {
     const certRepository = this.dataSource.getRepository(EmailCertEntity);
+    const userRepository = this.dataSource.getRepository(UserEntity);
     const value = Math.floor(Math.random() * 10000)
       .toString()
       .padStart(5, '0');
@@ -35,6 +37,21 @@ export class SmtpService {
     if (!getCodeDto.email.endsWith('@chungkang.academy')) {
       throw new ForbiddenException('Email must ends with @chungkang.academy.');
     }
+
+    const user = await userRepository.findOneBy({
+      email: getCodeDto.email,
+    });
+
+    if (user) {
+      throw new ConflictException(
+        `User with email ${getCodeDto.email} already exists`,
+      );
+    }
+
+    const oldVerifyCode = await certRepository.findBy({
+      email: getCodeDto.email,
+    });
+    await certRepository.remove(oldVerifyCode);
 
     try {
       const generated = certRepository.create({
@@ -64,13 +81,18 @@ export class SmtpService {
     cert: string,
   ): Promise<ResultType> {
     try {
+      this.logger.log(
+        `Sending verify code to ${getCodeDto.email} with code ${cert}.`,
+      );
       await this.mailerService.sendMail({
         to: getCodeDto.email,
         subject: '[디버거즈] 이메일을 인증해 주세요.',
-        html: verifyEmailTemplate.replace(
-          '$link',
-          `https://ckgamelab.com/register/continue?email=${getCodeDto.email}&cert=${cert}`,
-        ),
+        html: verifyEmailTemplate
+          .replace(
+            '$URL',
+            `${process.env.FRONT_URL}/register/continue?email=${getCodeDto.email}&cert=${cert}`,
+          )
+          .replace('$MAIN_URL', `${process.env.FRONT_URL}/`),
       });
       return {
         status: 'success',

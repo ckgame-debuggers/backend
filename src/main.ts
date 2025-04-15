@@ -7,6 +7,16 @@ async function bootstrap() {
   const app = await NestFactory.create(AppModule);
   app.useGlobalPipes(new ValidationPipe());
   app.use(cookieParser());
-  await app.listen(process.env.PORT ?? 8080);
+
+  app.enableCors({
+    origin: [process.env.FRONT_URL, 'http://localhost:3000'],
+    methods: 'GET,HEAD,PUT,PATCH,POST,DELETE,OPTIONS',
+    credentials: true,
+    exposedHeaders: ['Authorization'],
+  });
+
+  await app.listen(process.env.PORT ?? 8080, '0.0.0.0', () => {
+    console.log(`서버가 ${process.env.PORT ?? 8080}번 포트에서 실행 중입니다.`);
+  });
 }
 bootstrap();

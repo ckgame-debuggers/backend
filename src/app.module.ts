@@ -7,6 +7,7 @@ import { ConfigModule } from '@nestjs/config';
 import { DatabaseConfigService } from './providers/database/database.config';
 import { SmtpModule } from './api/smtp/smtp.module';
 import { CrewModule } from './api/crew/crew.module';
+import { DebuggersModule } from './api/debuggers/debuggers.module';
 
 @Module({
   imports: [
@@ -21,6 +22,7 @@ import { CrewModule } from './api/crew/crew.module';
     AuthModule,
     SmtpModule,
     CrewModule,
+    DebuggersModule,
   ],
   controllers: [AppController],
   providers: [AppService],

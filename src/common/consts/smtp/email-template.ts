@@ -24,7 +24,7 @@ export const verifyEmailTemplate = `
         padding-bottom: 1rem;
         "
     >
-        <td style="color: white">
+        <td style="color: white; margin-bottom: 1rem;">
         이 이메일은 디버거즈(청강문화산업대학교 게임스쿨 학생회) 웹 서비스
         회원가입을 위해 발송되었습니다.
         </td>
@@ -34,35 +34,36 @@ export const verifyEmailTemplate = `
         </td>
     </tr>
     <tr style="margin: 1rem 0">
-        <td style="display: flex; gap: 1rem">
-        <a
-            style="
-            cursor: pointer;
-            background-color: #ff700f;
-            padding: 10px 40px;
-            color: white;
-            text-decoration: none;
-            font-size: 15px;
-            border-radius: 5px;
-            box-sizing: border-box;
-            "
-            href="$link"
-            >가입 진행하기</a
-        >
-        <a
-            style="
-            cursor: pointer;
-            padding: 10px 40px;
-            color: #ff700f;
-            text-decoration: none;
-            font-size: 15px;
-            border-radius: 5px;
-            box-sizing: border-box;
-            border: 1px solid #ff700f;
-            "
-            href="https://ckgamelab.com/"
-            >디버거즈</a
-        >
+        <td style="display: flex;">
+            <a
+                style="
+                cursor: pointer;
+                background-color: #ff700f;
+                padding: 10px 40px;
+                color: white;
+                text-decoration: none;
+                font-size: 15px;
+                border-radius: 5px;
+                box-sizing: border-box;
+                margin-right: 1rem;
+                "
+                href="$URL"
+                >가입 진행하기</a
+            >
+            <a
+                style="
+                cursor: pointer;
+                padding: 10px 40px;
+                color: #ff700f;
+                text-decoration: none;
+                font-size: 15px;
+                border-radius: 5px;
+                box-sizing: border-box;
+                border: 1px solid #ff700f;
+                "
+                href=$MAIN_URL
+                >디버거즈</a
+            >
         </td>
     </tr>
     <tr>

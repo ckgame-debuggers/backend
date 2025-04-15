@@ -55,7 +55,7 @@ export class AuthController {
     });
   }
 
-  @Get('/refresh')
+  @Post('/refresh')
   async refresh(
     @Req() req: Request,
     @Res({ passthrough: true }) res: Response,
@@ -69,6 +69,7 @@ export class AuthController {
       return;
     }
 
+    this.logger.debug(refreshToken);
     const token =
       (
         await this.authService.refresh({
