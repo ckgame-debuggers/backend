@@ -1,9 +1,10 @@
 import { NestFactory } from '@nestjs/core';
 import { AppModule } from './app.module';
-import { ValidationPipe } from '@nestjs/common';
+import { Logger, ValidationPipe } from '@nestjs/common';
 import cookieParser from 'cookie-parser';
 
 async function bootstrap() {
+  const logger = new Logger('Initializer');
   const app = await NestFactory.create(AppModule);
   app.useGlobalPipes(new ValidationPipe());
   app.use(cookieParser());
@@ -15,8 +16,10 @@ async function bootstrap() {
     exposedHeaders: ['Authorization'],
   });
 
-  await app.listen(process.env.PORT ?? 8080, '0.0.0.0', () => {
-    console.log(`서버가 ${process.env.PORT ?? 8080}번 포트에서 실행 중입니다.`);
+  logger.log('Enabled cors.');
+  const port = process.env.PORT ?? 8080;
+  await app.listen(port, '0.0.0.0', () => {
+    logger.log(`Listening on port : ${port}`);
   });
 }
 bootstrap();

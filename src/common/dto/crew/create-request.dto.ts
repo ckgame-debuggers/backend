@@ -1,4 +1,4 @@
-import { IsNotEmpty, IsString } from 'class-validator';
+import { IsBoolean, IsNotEmpty, IsNumber, IsString } from 'class-validator';
 
 export class CrewCreateReqDto {
   @IsNotEmpty()
@@ -8,4 +8,12 @@ export class CrewCreateReqDto {
   @IsNotEmpty()
   @IsString()
   description: string;
+
+  @IsNotEmpty()
+  @IsNumber()
+  maxPeople: number;
+
+  @IsNotEmpty()
+  @IsBoolean()
+  isRecruiting: boolean;
 }

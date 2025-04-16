@@ -12,6 +12,12 @@ export class CrewCreateRequestEntity {
   @Column()
   description: string;
 
+  @Column()
+  maxPeople: number;
+
+  @Column()
+  isRecruiting: boolean;
+
   @ManyToOne(() => UserEntity, (user) => user)
   user: UserEntity;
 }

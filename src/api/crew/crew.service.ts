@@ -45,6 +45,8 @@ export class CrewService {
     const request = reqRepository.create({
       title: createReqDto.title,
       description: createReqDto.description,
+      isRecruiting: createReqDto.isRecruiting,
+      maxPeople: createReqDto.maxPeople,
       user: requestUser,
     });
     await reqRepository.save(request);
@@ -106,7 +108,8 @@ export class CrewService {
       title: request.title,
       createdAt: `${date.getFullYear()}년 ${date.getMonth() + 1}월 ${date.getDate()}일`,
       description: request.description,
-      isRecruiting: false,
+      maxPeople: request.maxPeople,
+      isRecruiting: request.isRecruiting,
     });
     await crewRepository.save(generated);
     const admin = crewMemberRepository.create({
