@@ -3,6 +3,8 @@ import { RefreshEntity } from './refresh.entity';
 import { CrewMemberEntity } from '../crew/crew-member.entity';
 import { CrewApplicationEntity } from '../crew/crew-application.entity';
 import { CrewCreateRequestEntity } from '../crew/crew-create-request.entity';
+import { DebuggersBugEntity } from '../debuggers/bug.entity';
+import { DebuggersCommentEntity } from '../debuggers/comment.entity';
 
 @Entity('users')
 export class UserEntity {
@@ -35,6 +37,12 @@ export class UserEntity {
 
   @OneToMany(() => RefreshEntity, (refresh) => refresh.user)
   refreshTokens: RefreshEntity[];
+
+  @OneToMany(() => DebuggersBugEntity, (bug) => bug.user)
+  bugs: DebuggersBugEntity[];
+
+  @OneToMany(() => DebuggersCommentEntity, (comment) => comment.writer)
+  bugComments: DebuggersCommentEntity[];
 
   @OneToMany(() => CrewMemberEntity, (crew) => crew.user)
   crew: CrewMemberEntity[];
