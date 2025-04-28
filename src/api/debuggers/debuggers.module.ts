@@ -4,6 +4,6 @@ import { DebuggersService } from './debuggers.service';
 
 @Module({
   controllers: [DebuggersController],
-  providers: [DebuggersService]
+  providers: [DebuggersService],
 })
 export class DebuggersModule {}

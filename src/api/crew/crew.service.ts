@@ -130,6 +130,35 @@ export class CrewService {
   }
 
   /**
+   * Check if user is member of crew
+   * @param userId id of user to check membership
+   * @param crewId id of crew to check membership
+   * @returns object containing membership status and permission level if member
+   */
+  async checkIsMember(
+    userId: number,
+    crewId: number,
+  ): Promise<ResultType<{ isMember: boolean; permission?: string }>> {
+    this.logger.log(`Checking if user ${userId} is member of crew ${crewId}`);
+    const crewMemberRepository =
+      this.dataSource.getRepository(CrewMemberEntity);
+    const member = await crewMemberRepository.findOneBy({
+      userId,
+      crewId,
+    });
+
+    return {
+      status: 'success',
+      message: member ? 'User is a member' : 'User is not a member',
+      data: {
+        isMember: !!member,
+        ...(member && { permission: member.permission }),
+      },
+      timestamp: new Date(),
+    };
+  }
+
+  /**
    * Get crew with current id.
    * @param id id of crew to find.
    * @returns found crews
@@ -154,12 +183,72 @@ export class CrewService {
   }
 
   /**
+   * Get crews that current user joined.
+   * @param userId id of user to find crews
+   * @returns found crews that user joined
+   */
+  async getMyCrew(userId: number): Promise<ResultType<CrewEntity[]>> {
+    const crewMemberRepository =
+      this.dataSource.getRepository(CrewMemberEntity);
+    const found = await crewMemberRepository.find({
+      where: {
+        userId,
+      },
+      relations: {
+        crew: true,
+      },
+    });
+    return {
+      status: 'success',
+      message: `Found ${found.length} crews.`,
+      data: found.map((member) => member.crew),
+      timestamp: new Date(),
+    };
+  }
+
+  /**
+   * Get members of a specific crew
+   * @param id The ID of the crew to get members for
+   * @returns Array of crew members with user details
+   */
+  async getCrewMember(id: number): Promise<ResultType<CrewMemberEntity[]>> {
+    this.logger.log(`Fetching member of crew : ${id}`);
+    const crewRepository = this.dataSource.getRepository(CrewEntity);
+    const crewMemberRepository =
+      this.dataSource.getRepository(CrewMemberEntity);
+
+    const crew = await crewRepository.findOneBy({ id });
+    if (!crew) {
+      throw new NotFoundException('Crew not found');
+    }
+    const members = await crewMemberRepository.find({
+      where: {
+        crewId: crew.id,
+      },
+      relations: {
+        user: true,
+      },
+      select: {
+        user: {
+          schoolNumber: true,
+          fullname: true,
+        },
+      },
+    });
+    return {
+      status: 'success',
+      message: `Found ${members.length} members`,
+      data: members,
+      timestamp: new Date(),
+    };
+  }
+
+  /**
    * Get all crews with pagination.
    * @param page current index of page
    * @param take crews per page
    * @returns found crews
-   */
-  async getAllCrews(
+   */ async getAllCrews(
     page: number,
     take: number,
   ): Promise<ResultType<CrewEntity[]>> {
@@ -475,6 +564,62 @@ export class CrewService {
       status: 'success',
       message: 'Successfully updated crew information.',
       data: crew,
+      timestamp: new Date(),
+    };
+  }
+
+  /**
+   * Ban a member from the crew.
+   * @param crewId id of the crew to ban member from
+   * @param userId id of the user to ban
+   * @param user current user performing the ban
+   */
+  async banMember(
+    crewId: number,
+    userId: number,
+    user: JwtPayload,
+  ): Promise<ResultType> {
+    this.logger.log(`Setting sub-owner for crew with id ${crewId}`);
+    const crewMemberRepository =
+      this.dataSource.getRepository(CrewMemberEntity);
+    const crewRepository = this.dataSource.getRepository(CrewEntity);
+    const userRepository = this.dataSource.getRepository(UserEntity);
+    const crew = await crewRepository.findOneBy({ id: crewId });
+    if (!crew) {
+      this.logger.error(`Crew with id ${crewId} not found`);
+      throw new NotFoundException(`Crew with id ${crewId} not found.`);
+    }
+    const userPermission = await crewMemberRepository.findOneBy({
+      crew,
+      user: { id: user.id },
+    });
+    const reqUser = await userRepository.findOneBy({ id: user.id });
+    if (!reqUser) {
+      this.logger.error('Requested user not found');
+      throw new ConflictException('Requested user not found.');
+    }
+    if (
+      (!userPermission ||
+        ['Owner', 'Sub-Owner'].indexOf(userPermission.permission) === -1) &&
+      reqUser.permission < 2
+    ) {
+      this.logger.error('Insufficient permissions');
+      throw new ForbiddenException(
+        'Only the owner or user with permission 2 or higher can set a sub-owner.',
+      );
+    }
+
+    const found = await crewMemberRepository.findOneBy({
+      userId: userId,
+      crewId: crewId,
+    });
+    if (!found) throw new NotFoundException('User not found in crew');
+
+    await crewMemberRepository.remove(found);
+
+    return {
+      status: 'success',
+      message: 'Successfully banned member from crew.',
       timestamp: new Date(),
     };
   }

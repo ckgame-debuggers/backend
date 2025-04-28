@@ -1,4 +1,10 @@
-import { Column, Entity, OneToMany, PrimaryGeneratedColumn } from 'typeorm';
+import {
+  Column,
+  Entity,
+  Index,
+  OneToMany,
+  PrimaryGeneratedColumn,
+} from 'typeorm';
 import { UserEntity } from './user.entity';
 
 @Entity('email-cert')
@@ -7,6 +13,7 @@ export class EmailCertEntity {
   id: number;
 
   @Column()
+  @Index()
   email: string;
 
   @Column()

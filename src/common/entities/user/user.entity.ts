@@ -1,4 +1,10 @@
-import { Column, Entity, OneToMany, PrimaryGeneratedColumn } from 'typeorm';
+import {
+  Column,
+  Entity,
+  Index,
+  OneToMany,
+  PrimaryGeneratedColumn,
+} from 'typeorm';
 import { RefreshEntity } from './refresh.entity';
 import { CrewMemberEntity } from '../crew/crew-member.entity';
 import { CrewApplicationEntity } from '../crew/crew-application.entity';
@@ -18,9 +24,11 @@ export class UserEntity {
   fullname: string;
 
   @Column({ unique: true, length: 20 })
+  @Index()
   schoolNumber: string;
 
   @Column({ length: 100 })
+  @Index()
   email: string;
 
   @Column()
@@ -38,7 +46,7 @@ export class UserEntity {
   @OneToMany(() => RefreshEntity, (refresh) => refresh.user)
   refreshTokens: RefreshEntity[];
 
-  @OneToMany(() => DebuggersBugEntity, (bug) => bug.user)
+  @OneToMany(() => DebuggersBugEntity, (bug) => bug.writer)
   bugs: DebuggersBugEntity[];
 
   @OneToMany(() => DebuggersCommentEntity, (comment) => comment.writer)

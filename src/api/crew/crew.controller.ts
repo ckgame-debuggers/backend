@@ -22,11 +22,13 @@ import { CrewCreateDto } from 'src/common/dto/crew/create.dto';
 import { CrewApplicationDto } from 'src/common/dto/crew/application.dto';
 import { CrewUpdateDto } from 'src/common/dto/crew/update.dto';
 import { CrewSetRecruitingDto } from 'src/common/dto/crew/set-recruiting.dto';
+import { User } from 'src/common/decorator/get-user';
 
 @Controller('crew')
 export class CrewController {
   private readonly logger = new Logger(CrewController.name);
   constructor(private readonly crewService: CrewService) {}
+
   @Post('request')
   @UseGuards(AuthGuard)
   async requestCreate(
@@ -49,15 +51,15 @@ export class CrewController {
     return await this.crewService.create(createCrewDto, req.user);
   }
 
-  @Get(':id')
-  async getCrew(@Param('id', ParseIntPipe) id: number) {
-    this.logger.log(`Fetching crew with id ${id}`);
-    return await this.crewService.getCrew(id);
+  @Get('my')
+  @UseGuards(AuthGuard)
+  async getMyCrew(@User('id') userId: number) {
+    this.logger.log(`Fetching crews for user ${userId}`);
+    return await this.crewService.getMyCrew(userId);
   }
-
   @Get()
   async getAllCrews(
-    @Query('page`', new DefaultValuePipe(0), ParseIntPipe) page: number,
+    @Query('page', new DefaultValuePipe(0), ParseIntPipe) page: number,
     @Query('take', new DefaultValuePipe(10), ParseIntPipe) take: number,
   ) {
     this.logger.log('Fetching all crews');
@@ -143,6 +145,28 @@ export class CrewController {
     return await this.crewService.changeOwner(id, req.user.id, req.user);
   }
 
+  @Get(':id')
+  async getCrew(@Param('id', ParseIntPipe) id: number) {
+    this.logger.log(`Fetching crew with id ${id}`);
+    return await this.crewService.getCrew(id);
+  }
+
+  @Get(':id/check-member')
+  @UseGuards(AuthGuard)
+  async checkIsMember(
+    @Param('id', ParseIntPipe) crewId: number,
+    @User('id') userId: number,
+  ) {
+    this.logger.log(`Checking if user ${userId} is member of crew ${crewId}`);
+    return await this.crewService.checkIsMember(userId, crewId);
+  }
+
+  @Get(':id/members')
+  async getCrewMembers(@Param('id', ParseIntPipe) id: number) {
+    this.logger.log(`Fetching members for crew ${id}`);
+    return await this.crewService.getCrewMember(id);
+  }
+
   @Put(':id/recruiting')
   @UseGuards(AuthGuard)
   async setRecruiting(
@@ -166,5 +190,16 @@ export class CrewController {
   ) {
     this.logger.log(`Removing crew with id ${id}`);
     return await this.crewService.remove(id, req.user);
+  }
+
+  @Post(':id/ban/:userId')
+  @UseGuards(AuthGuard)
+  async banMember(
+    @Param('id', ParseIntPipe) crewId: number,
+    @Param('userId', ParseIntPipe) userId: number,
+    @Req() req: Request & { user: JwtPayload },
+  ) {
+    this.logger.log(`Banning user ${userId} from crew ${crewId}`);
+    return await this.crewService.banMember(crewId, userId, req.user);
   }
 }

@@ -1,6 +1,5 @@
 import {
   ConflictException,
-  ForbiddenException,
   Injectable,
   Logger,
   NotFoundException,
@@ -280,6 +279,7 @@ export class AuthService {
     let decoded: { id: number };
     try {
       decoded = this.jwtService.verify(token);
+      // eslint-disable-next-line @typescript-eslint/no-unused-vars
     } catch (error) {
       this.logger.error('Refresh token verification failed: Token expired');
       throw new UnauthorizedException('Refresh token has expired');
@@ -330,5 +330,19 @@ export class AuthService {
     if (currentRefreshToken) {
       await refreshRepository.remove(currentRefreshToken);
     }
+  }
+
+  async getPrivacyInfo(userId: number) {
+    const userRepository = this.dataSource.getRepository(UserEntity);
+    const found = await userRepository.findOneBy({
+      id: userId,
+    });
+    if (!found) {
+      throw new NotFoundException('User not found.');
+    }
+    return {
+      tel: found.tel,
+      fullName: found.fullname,
+    };
   }
 }

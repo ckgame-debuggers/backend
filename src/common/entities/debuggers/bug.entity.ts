@@ -8,8 +8,9 @@ import {
 } from 'typeorm';
 import { UserEntity } from '../user/user.entity';
 import { DebuggersCommentEntity } from './comment.entity';
+import { DebuggersCategoryEntity } from './category.entity';
 
-@Entity()
+@Entity('debuggers-bug')
 export class DebuggersBugEntity {
   @PrimaryGeneratedColumn()
   id: number;
@@ -20,15 +21,24 @@ export class DebuggersBugEntity {
   @Column()
   contents: string;
 
+  @Column()
+  createdAt: string;
+
   @PrimaryColumn()
   index: number;
 
-  @ManyToOne(() => UserEntity, (user) => user.bugs)
-  user: UserEntity;
-
-  @OneToMany(() => DebuggersCommentEntity, (comment) => comment.bug)
-  comments: DebuggersCommentEntity[];
+  @Column()
+  solved: boolean;
 
   @Column()
   debuggersAnswer: string;
+
+  @ManyToOne(() => DebuggersCategoryEntity, (category) => category.bugs)
+  category: DebuggersCategoryEntity;
+
+  @ManyToOne(() => UserEntity, (user) => user.bugs)
+  writer: UserEntity;
+
+  @OneToMany(() => DebuggersCommentEntity, (comment) => comment.bug)
+  comments: DebuggersCommentEntity[];
 }
