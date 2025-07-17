@@ -24,12 +24,8 @@ jobs:
           aws-secret-access-key: ${{ secrets.AWS_ACCESS_SECRET }}
           aws-region: ${{ secrets.AWS_REGION }}
 
-      - name: Install dependencies
-        run: npm install
-
-      - name: Check environment variables
-        run: |
-          echo "JWT_SECRET=${{ secrets.JWT_SECRET }}" >> .env
+      - name: Set environment variables
+        run: echo "JWT_SECRET=${{ secrets.JWT_SECRET }}" >> .env
           echo "JWT_ACCESS_EXPIRES_IN=${{ secrets.JWT_ACCESS_EXPIRES_IN }}" >> .env
           echo "JWT_REFRESH_EXPIRATION_TIME=${{ secrets.JWT_REFRESH_EXPIRATION_TIME }}" >> .env
           echo "DATABASE_URL=${{ secrets.DATABASE_URL }}" >> .env
@@ -44,7 +40,9 @@ jobs:
           echo "MAIL_FROM=${{ secrets.MAIL_FROM }}" >> .env
           echo "FRONT_URL=${{ secrets.FRONT_URL }}" >> .env
           echo "PORT=${{ secrets.PORT }}" >> .env
-          node scripts/check-env.js
+
+      - name: Install dependencies
+        run: npm install
 
       - name: Build application
         run: npm run build
