@@ -35,29 +35,43 @@ $ git clone https://github.com/odin-store/native.git
 $ pnpm install
 ```
 
-3. Rename .env.sample to .env.development.
+3. Copy `env.sample` to `.env` and configure your environment variables.
 
-All values in .env.sample are example values. Please modify them according to your environment.
+```bash
+cp env.sample .env
+```
+
+Then edit `.env` file with your actual values. All required environment variables are validated on application startup.
+
+**Required Environment Variables:**
+
+- **JWT Configuration**: `JWT_SECRET`, `JWT_ACCESS_EXPIRES_IN`, `JWT_REFRESH_EXPIRATION_TIME`
+- **Database Configuration**: `DATABASE_URL`, `DATABASE_PORT`, `DATABASE_NAME`, `DATABASE_USER`, `DATABASE_PASSWORD`
+- **Mail Configuration**: `MAIL_HOST`, `MAIL_PORT`, `MAIL_USER`, `MAIL_PASS`, `MAIL_FROM`
+- **Application Configuration**: `FRONT_URL`, `PORT`
+
+**Example .env file:**
 
 ```env
-#JWT
-JWT_SECRET=
-JWT_ACCESS_EXPIRES_IN=20000
-JWT_REFRESH_EXPIRATION_TIME=2592000000
-JWT_REFRESH_SECRET=
+NODE_ENV=development
+PORT=8080
+FRONT_URL=http://localhost:3000
 
-#Database
-DATABASE_URL=
-DATABASE_PASSWORD=
-DATABASE_NAME=
-DATABASE_USER=
+JWT_SECRET=your-super-secret-jwt-key-here
+JWT_ACCESS_EXPIRES_IN=7d
+JWT_REFRESH_EXPIRATION_TIME=30d
 
-#MAIL
-MAIL_USER=
-MAIL_PASS=
+DATABASE_URL=localhost
+DATABASE_PORT=5432
+DATABASE_NAME=debuggers_db
+DATABASE_USER=postgres
+DATABASE_PASSWORD=your-password
 
-#Portone
-PORTONE_API_SECRET=
+MAIL_HOST=smtp.gmail.com
+MAIL_PORT=587
+MAIL_USER=your-email@gmail.com
+MAIL_PASS=your-app-password
+MAIL_FROM=your-email@gmail.com
 ```
 
 > You can get your portone api info from [here](https://portone.io/)
