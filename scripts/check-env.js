@@ -5,9 +5,6 @@
  * Run this script before building to ensure all required environment variables are set
  */
 
-const fs = require('fs');
-const path = require('path');
-
 // Required environment variables
 const requiredEnvVars = {
   // JWT Configuration
@@ -34,38 +31,6 @@ const requiredEnvVars = {
   PORT: 'Application port number',
 };
 
-// Load environment variables
-function loadEnvFile() {
-  const envPath = path.resolve(process.cwd(), '.env');
-  const envDevPath = path.resolve(process.cwd(), '.env.dev');
-
-  let envFile = null;
-
-  if (fs.existsSync(envPath)) {
-    envFile = envPath;
-  } else if (fs.existsSync(envDevPath)) {
-    envFile = envDevPath;
-  }
-
-  if (envFile) {
-    const envContent = fs.readFileSync(envFile, 'utf8');
-    const lines = envContent.split('\n');
-
-    lines.forEach((line) => {
-      const trimmedLine = line.trim();
-      if (trimmedLine && !trimmedLine.startsWith('#')) {
-        const [key, ...valueParts] = trimmedLine.split('=');
-        if (key && valueParts.length > 0) {
-          const value = valueParts.join('=').trim();
-          if (value) {
-            process.env[key.trim()] = value;
-          }
-        }
-      }
-    });
-  }
-}
-
 // Validate environment variables
 function validateEnvironment() {
   console.log('🔍 Validating environment variables...');
@@ -83,10 +48,7 @@ function validateEnvironment() {
     console.error('\n❌ Missing required environment variables:');
     missingVars.forEach((v) => console.error(`  - ${v}`));
     console.error(
-      '\nPlease check your .env file and ensure all required variables are set.',
-    );
-    console.error(
-      'You can copy .env.sample to .env and fill in the required values.',
+      '\nPlease ensure all required environment variables are set.',
     );
     process.exit(1);
   }
@@ -102,7 +64,6 @@ function validateEnvironment() {
 
 // Main execution
 try {
-  loadEnvFile();
   validateEnvironment();
 } catch (error) {
   console.error('Error during environment validation:', error.message);
