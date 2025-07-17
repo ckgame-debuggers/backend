@@ -24,26 +24,6 @@ jobs:
           aws-secret-access-key: ${{ secrets.AWS_ACCESS_SECRET }}
           aws-region: ${{ secrets.AWS_REGION }}
 
-      - name: Create .env file
-        run: |
-          echo "NODE_ENV=prod" >> .env
-          echo "PORT=8000" >> .env
-          echo "FRONT_URL=${{ vars.FRONT_URL }}" >> .env
-          echo "JWT_SECRET=${{ vars.JWT_SECRET }}" >> .env
-          echo "JWT_ACCESS_EXPIRES_IN=${{ vars.JWT_ACCESS_EXPIRES_IN }}" >> .env
-          echo "JWT_REFRESH_SECRET=${{ vars.JWT_REFRESH_SECRET }}" >> .env
-          echo "JWT_REFRESH_EXPIRATION_TIME=${{ vars.JWT_REFRESH_EXPIRATION_TIME }}" >> .env
-          echo "DATABASE_URL=${{ vars.DATABASE_URL }}" >> .env
-          echo "DATABASE_PORT=${{ vars.DATABASE_PORT }}" >> .env
-          echo "DATABASE_NAME=${{ vars.DATABASE_NAME }}" >> .env
-          echo "DATABASE_USER=${{ vars.DATABASE_USER }}" >> .env
-          echo "DATABASE_PASSWORD=${{ vars.DATABASE_PASSWORD }}" >> .env
-          echo "MAIL_USER=${{ vars.MAIL_USER }}" >> .env
-          echo "MAIL_PASS=${{ vars.MAIL_PASS }}" >> .env
-          echo "MAIL_HOST=${{ vars.MAIL_HOST }}" >> .env
-          echo "MAIL_PORT=${{ vars.MAIL_PORT }}" >> .env
-          echo "MAIL_FROM=${{ vars.MAIL_FROM }}" >> .env
-
       - name: Install dependencies
         run: npm install
 
