@@ -35,6 +35,9 @@ const requiredEnvVars = {
 function validateEnvironment() {
   console.log('🔍 Validating environment variables...');
 
+  // Load environment variables from .env file
+  require('dotenv').config();
+
   const missingVars = [];
 
   for (const [key, description] of Object.entries(requiredEnvVars)) {

@@ -3,9 +3,13 @@ import { AppModule } from './app.module';
 import { Logger, ValidationPipe } from '@nestjs/common';
 import cookieParser from 'cookie-parser';
 import { EnvConfigService } from './common/configs/env.config';
+import { config } from 'dotenv';
 
 async function bootstrap() {
   const logger = new Logger('Initializer');
+
+  // Load .env file first
+  config();
 
   const envConfig = new EnvConfigService();
   envConfig.validateEnvironment();
