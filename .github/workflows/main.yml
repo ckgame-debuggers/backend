@@ -25,21 +25,27 @@ jobs:
           aws-region: ${{ secrets.AWS_REGION }}
 
       - name: Set environment variables
-        run: echo "JWT_SECRET=${{ secrets.JWT_SECRET }}" >> .env
-          echo "JWT_ACCESS_EXPIRES_IN=${{ secrets.JWT_ACCESS_EXPIRES_IN }}" >> .env
-          echo "JWT_REFRESH_EXPIRATION_TIME=${{ secrets.JWT_REFRESH_EXPIRATION_TIME }}" >> .env
-          echo "DATABASE_URL=${{ secrets.DATABASE_URL }}" >> .env
-          echo "DATABASE_PORT=${{ secrets.DATABASE_PORT }}" >> .env
-          echo "DATABASE_NAME=${{ secrets.DATABASE_NAME }}" >> .env
-          echo "DATABASE_USER=${{ secrets.DATABASE_USER }}" >> .env
-          echo "DATABASE_PASSWORD=${{ secrets.DATABASE_PASSWORD }}" >> .env
-          echo "MAIL_HOST=${{ secrets.MAIL_HOST }}" >> .env
-          echo "MAIL_PORT=${{ secrets.MAIL_PORT }}" >> .env
-          echo "MAIL_USER=${{ secrets.MAIL_USER }}" >> .env
-          echo "MAIL_PASS=${{ secrets.MAIL_PASS }}" >> .env
-          echo "MAIL_FROM=${{ secrets.MAIL_FROM }}" >> .env
-          echo "FRONT_URL=${{ secrets.FRONT_URL }}" >> .env
-          echo "PORT=${{ secrets.PORT }}" >> .env
+        run: |
+          touch .env
+          echo "JWT_SECRET='${{ secrets.JWT_SECRET }}'" >> .env
+          echo "JWT_ACCESS_EXPIRES_IN='${{ secrets.JWT_ACCESS_EXPIRES_IN }}'" >> .env
+          echo "JWT_REFRESH_EXPIRATION_TIME='${{ secrets.JWT_REFRESH_EXPIRATION_TIME }}'" >> .env
+          echo "DATABASE_URL='${{ secrets.DATABASE_URL }}'" >> .env
+          echo "DATABASE_PORT='${{ secrets.DATABASE_PORT }}'" >> .env
+          echo "DATABASE_NAME='${{ secrets.DATABASE_NAME }}'" >> .env
+          echo "DATABASE_USER='${{ secrets.DATABASE_USER }}'" >> .env
+          echo "DATABASE_PASSWORD='${{ secrets.DATABASE_PASSWORD }}'" >> .env
+          echo "MAIL_HOST='${{ secrets.MAIL_HOST }}'" >> .env
+          echo "MAIL_PORT='${{ secrets.MAIL_PORT }}'" >> .env
+          echo "MAIL_USER='${{ secrets.MAIL_USER }}'" >> .env
+          echo "MAIL_PASS='${{ secrets.MAIL_PASS }}'" >> .env
+          echo "MAIL_FROM='${{ secrets.MAIL_FROM }}'" >> .env
+          echo "FRONT_URL='${{ secrets.FRONT_URL }}'" >> .env
+          echo "PORT='${{ secrets.PORT }}'" >> .env
+          cat .env
+
+      - name: Check environment variables
+        run: node scripts/check-env.js
 
       - name: Install dependencies
         run: npm install
