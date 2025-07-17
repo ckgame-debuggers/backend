@@ -18,7 +18,7 @@ export class DatabaseConfigService implements TypeOrmOptionsFactory {
       password: this.configService.get<string>('DATABASE_PASSWORD'),
       port: this.configService.get<number>('DATABASE_PORT'),
       entities: [__dirname + '/../../**/**/*.entity.{js,ts}'],
-      //데이터 동기화 설정
+      // Data synchronization settings
       synchronize: true,
       extra: {
         timezone: 'Asia/Seoul',

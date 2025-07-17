@@ -16,6 +16,13 @@ export class EmailCertEntity {
   @Index()
   email: string;
 
+  @Column({
+    nullable: true,
+    default: 'cert',
+    enum: ['register', 'reset-password'],
+  })
+  type: 'register' | 'reset-password';
+
   @Column()
   value: string;
 }

@@ -10,16 +10,6 @@ import { CrewServerEntity } from 'src/common/entities/crew/crew-server.entity';
 import { UserEntity } from 'src/common/entities/user/user.entity';
 
 @Module({
-  imports: [
-    TypeOrmModule.forFeature([
-      CrewEntity,
-      CrewMemberEntity,
-      CrewApplicationEntity,
-      CrewCreateRequestEntity,
-      CrewServerEntity,
-      UserEntity,
-    ]),
-  ],
   providers: [CrewService],
   controllers: [CrewController],
 })

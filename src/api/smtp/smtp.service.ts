@@ -5,8 +5,8 @@ import {
   Injectable,
   Logger,
 } from '@nestjs/common';
-import { ConfigService } from '@nestjs/config';
-import { verifyEmailTemplate } from 'src/common/consts/smtp/email-template';
+import { verifyEmailTemplate } from 'src/common/consts/smtp/templates/register';
+import { resetPasswordTemplate } from 'src/common/consts/smtp/templates/reset-password';
 import GetCodeDto from 'src/common/dto/cert/get-code.dto';
 import { EmailCertEntity } from 'src/common/entities/user/email-cert.entity';
 import { UserEntity } from 'src/common/entities/user/user.entity';
@@ -19,6 +19,28 @@ export class SmtpService {
     private readonly mailerService: MailerService,
     private readonly dataSource: DataSource,
   ) {}
+
+  /**
+   * Delete verification code after 5 minutes
+   * @param email email to delete verification code for
+   */
+  private async deleteVerificationCodeAfterTimeout(
+    email: string,
+  ): Promise<void> {
+    setTimeout(
+      async () => {
+        const certRepository = this.dataSource.getRepository(EmailCertEntity);
+        const cert = await certRepository.findOneBy({ email });
+        if (cert) {
+          await certRepository.remove(cert);
+          this.logger.log(
+            `Deleted verification code for ${email} after 5 minutes`,
+          );
+        }
+      },
+      3 * 60 * 1000,
+    );
+  }
 
   /**
    * Generate new verify code for register
@@ -42,9 +64,13 @@ export class SmtpService {
       email: getCodeDto.email,
     });
 
-    if (user) {
+    if (getCodeDto.type === 'register' && user) {
       throw new ConflictException(
         `User with email ${getCodeDto.email} already exists`,
+      );
+    } else if (!user) {
+      throw new ConflictException(
+        `User with email ${getCodeDto.email} not exists`,
       );
     }
 
@@ -57,8 +83,12 @@ export class SmtpService {
       const generated = certRepository.create({
         email: getCodeDto.email,
         value,
+        type: getCodeDto.type ?? 'register',
       });
       await certRepository.save(generated);
+
+      this.deleteVerificationCodeAfterTimeout(getCodeDto.email);
+
       return {
         status: 'success',
         message: 'Successfully created new cert data.',
@@ -84,15 +114,26 @@ export class SmtpService {
       this.logger.log(
         `Sending verify code to ${getCodeDto.email} with code ${cert}.`,
       );
-      await this.mailerService.sendMail({
-        to: getCodeDto.email,
-        subject: '[디버거즈] 이메일을 인증해 주세요.',
-        html: verifyEmailTemplate
+      let template = '';
+      if (getCodeDto.type === 'reset-password') {
+        template = resetPasswordTemplate
+          .replace(
+            '$URL',
+            `${process.env.FRONT_URL}/find/password/reset?email=${getCodeDto.email}&cert=${cert}`,
+          )
+          .replace('$MAIN_URL', `${process.env.FRONT_URL}/`);
+      } else {
+        template = verifyEmailTemplate
           .replace(
             '$URL',
             `${process.env.FRONT_URL}/register/continue?email=${getCodeDto.email}&cert=${cert}`,
           )
-          .replace('$MAIN_URL', `${process.env.FRONT_URL}/`),
+          .replace('$MAIN_URL', `${process.env.FRONT_URL}/`);
+      }
+      await this.mailerService.sendMail({
+        to: getCodeDto.email,
+        subject: '[디버거즈] 이메일을 인증해 주세요.',
+        html: template,
       });
       return {
         status: 'success',

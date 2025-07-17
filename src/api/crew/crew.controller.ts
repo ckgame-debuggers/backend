@@ -39,7 +39,6 @@ export class CrewController {
     this.logger.log('Creating new crew create request');
     return await this.crewService.requestCreate(createCrewRequestDto, user);
   }
-  x;
 
   @Post('create')
   @UseGuards(AuthGuard)
@@ -51,13 +50,7 @@ export class CrewController {
     return await this.crewService.create(createCrewDto, req.user);
   }
 
-  @Get('my')
-  @UseGuards(AuthGuard)
-  async getMyCrew(@User('id') userId: number) {
-    this.logger.log(`Fetching crews for user ${userId}`);
-    return await this.crewService.getMyCrew(userId);
-  }
-  @Get()
+  @Get("/")
   async getAllCrews(
     @Query('page', new DefaultValuePipe(0), ParseIntPipe) page: number,
     @Query('take', new DefaultValuePipe(10), ParseIntPipe) take: number,
@@ -66,14 +59,11 @@ export class CrewController {
     return await this.crewService.getAllCrews(page, take);
   }
 
-  @Post('apply')
+  @Get('my')
   @UseGuards(AuthGuard)
-  async applyCrew(
-    @Body() applyCrewDto: CrewApplicationDto,
-    @Req() req: Request & { user: JwtPayload },
-  ) {
-    this.logger.log('Creating new crew application');
-    return await this.crewService.applyCrew(applyCrewDto, req.user);
+  async getMyCrew(@User('id') userId: number) {
+    this.logger.log(`Fetching crews for user ${userId}`);
+    return await this.crewService.getMyCrew(userId);
   }
 
   @Get('application/:id')
@@ -92,6 +82,16 @@ export class CrewController {
   ) {
     this.logger.log('Fetching all applications');
     return await this.crewService.getAllApplications(page, take, crewId);
+  }
+
+  @Post('apply')
+  @UseGuards(AuthGuard)
+  async applyCrew(
+    @Body() applyCrewDto: CrewApplicationDto,
+    @Req() req: Request & { user: JwtPayload },
+  ) {
+    this.logger.log('Creating new crew application');
+    return await this.crewService.applyCrew(applyCrewDto, req.user);
   }
 
   @Post('application/:id/accept')

@@ -2,6 +2,7 @@ import {
   Column,
   Entity,
   Index,
+  ManyToMany,
   OneToMany,
   PrimaryGeneratedColumn,
 } from 'typeorm';
@@ -11,6 +12,7 @@ import { CrewApplicationEntity } from '../crew/crew-application.entity';
 import { CrewCreateRequestEntity } from '../crew/crew-create-request.entity';
 import { DebuggersBugEntity } from '../debuggers/bug.entity';
 import { DebuggersCommentEntity } from '../debuggers/comment.entity';
+import { Oauth2ConnectedEntity } from '../oauth2/connected.entity';
 
 @Entity('users')
 export class UserEntity {
@@ -27,7 +29,7 @@ export class UserEntity {
   @Index()
   schoolNumber: string;
 
-  @Column({ length: 100 })
+  @Column({ unique: true, length: 100 })
   @Index()
   email: string;
 
@@ -42,6 +44,9 @@ export class UserEntity {
 
   @Column({ type: 'enum', enum: ['male', 'female'], nullable: true })
   gender?: 'male' | 'female';
+
+  @OneToMany(() => Oauth2ConnectedEntity, (connected) => connected.user)
+  connectedService: Oauth2ConnectedEntity[];
 
   @OneToMany(() => RefreshEntity, (refresh) => refresh.user)
   refreshTokens: RefreshEntity[];

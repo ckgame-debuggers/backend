@@ -8,9 +8,19 @@ import { DatabaseConfigService } from './providers/database/database.config';
 import { SmtpModule } from './api/smtp/smtp.module';
 import { CrewModule } from './api/crew/crew.module';
 import { DebuggersModule } from './api/debuggers/debuggers.module';
+import { GlobalModule } from './api/global/global.module';
+import { PublicModule } from './api/public/public.module';
+import { ThrottlerModule } from '@nestjs/throttler';
+import { SchedulerModule } from './common/modules/scheduler.module';
 
 @Module({
   imports: [
+    ThrottlerModule.forRoot([
+      {
+        ttl: 60000,
+        limit: 10,
+      },
+    ]),
     ConfigModule.forRoot({
       isGlobal: true,
       envFilePath: process.env.NODE_ENV === 'dev' ? '.env.dev' : '.env',
@@ -23,6 +33,9 @@ import { DebuggersModule } from './api/debuggers/debuggers.module';
     SmtpModule,
     CrewModule,
     DebuggersModule,
+    GlobalModule,
+    PublicModule,
+    SchedulerModule,
   ],
   controllers: [AppController],
   providers: [AppService],

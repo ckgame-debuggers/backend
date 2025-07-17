@@ -10,12 +10,13 @@ import { JwtService } from '@nestjs/jwt';
 import RegisterDto from 'src/common/dto/auth/register.dto';
 import { UserEntity } from 'src/common/entities/user/user.entity';
 import { DataSource } from 'typeorm';
-import * as bcrypt from 'bcrypt';
 import LoginDto from 'src/common/dto/auth/login.dto';
 import { JwtPayload } from 'src/common/dto/auth/jwt-payload.dto';
 import { RefreshEntity } from 'src/common/entities/user/refresh.entity';
 import { RefreshDto } from 'src/common/dto/auth/refresh.dto';
 import { EmailCertEntity } from 'src/common/entities/user/email-cert.entity';
+import ResetPasswordDto from 'src/common/dto/auth/reset-password.dto';
+import * as bcrypt from 'bcrypt';
 
 @Injectable()
 export class AuthService {
@@ -220,7 +221,7 @@ export class AuthService {
     }
 
     if (similarToken && similarToken.exp && similarToken.exp > new Date()) {
-      this.logger.log(`Using existing refresh token for use r : ${user.email}`);
+      this.logger.log(`Using existing refresh token for user : ${user.email}`);
       return {
         status: 'success',
         message: `Using existing refresh token for user : ${user.email}`,
@@ -330,6 +331,65 @@ export class AuthService {
     if (currentRefreshToken) {
       await refreshRepository.remove(currentRefreshToken);
     }
+  }
+
+  /**
+   * Resets the user's password after verifying the email and certification code.
+   * @param {ResetPasswordDto} resetPasswordDto - DTO containing email, certification code, and new password.
+   * @returns {Promise<ResultType<any>>} Result object indicating success or failure.
+   * @throws {UnauthorizedException} If the verification code is invalid or user is not found.
+   * @throws {ConflictException} If the new password is the same as the old password.
+   */
+  async resetPassword(
+    resetPasswordDto: ResetPasswordDto,
+  ): Promise<ResultType<any>> {
+    const certRepository = this.dataSource.getRepository(EmailCertEntity);
+    const userRepository = this.dataSource.getRepository(UserEntity);
+    const refreshRepository = this.dataSource.getRepository(RefreshEntity);
+
+    const certInfo = await certRepository.findOneBy({
+      email: resetPasswordDto.email,
+      value: resetPasswordDto.certNumb,
+      type: 'reset-password',
+    });
+
+    if (!certInfo) {
+      throw new UnauthorizedException('Invalid verification code.');
+    }
+
+    const user = await userRepository.findOneBy({
+      email: resetPasswordDto.email,
+    });
+
+    if (!user) {
+      throw new UnauthorizedException('User not found.');
+    }
+
+    const isSamePassword = await bcrypt.compare(
+      resetPasswordDto.toChange,
+      user.password,
+    );
+    if (isSamePassword) {
+      throw new ConflictException(
+        'New password must be different from the old password.',
+      );
+    }
+
+    const saltRounds = 10;
+    const salt = await bcrypt.genSalt(saltRounds);
+    const hashedPassword = await bcrypt.hash(resetPasswordDto.toChange, salt);
+
+    await userRepository.update({ id: user.id }, { password: hashedPassword });
+
+    await refreshRepository.delete({ user: { id: user.id } });
+
+    await certRepository.remove(certInfo);
+
+    return {
+      status: 'success',
+      message: 'Password has been reset successfully.',
+      timestamp: new Date(),
+    };
   }
 
   async getPrivacyInfo(userId: number) {
