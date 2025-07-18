@@ -71,6 +71,8 @@ jobs:
           cp ../package.json .
           # Copy pnpm-lock.yaml to dist
           cp ../pnpm-lock.yaml .
+          # Copy .env to dist
+          cp ../.env
 
           # Create deployment package from dist
           zip -r ../deploy.zip . -x "*.git*" "node_modules/*"
