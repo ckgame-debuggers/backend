@@ -14,14 +14,6 @@ permissions:
     type:
       - directory
       - file
-  - object: /home/ubuntu/debuggers-backend/scripts/
-    pattern: '**'
-    owner: ubuntu
-    group: ubuntu
-    mode: 755
-    type:
-      - directory
-      - file
 
 hooks:
   BeforeInstall:
