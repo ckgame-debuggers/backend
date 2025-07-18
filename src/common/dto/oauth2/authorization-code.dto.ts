@@ -5,7 +5,6 @@ export class CreateAuthorizationCodeDto {
   @IsUUID()
   client_id: string;
 
-  @IsUUID('4', { each: true })
   @IsOptional()
   agreed: string[];
 
