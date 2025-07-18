@@ -55,7 +55,13 @@ jobs:
 
       - name: Create deployment package
         run: |
+          # Make scripts executable
+          chmod +x scripts/*.sh
+          # Create deployment package
           zip -r deploy.zip . -x "*.git*" "node_modules/*"
+          # Verify package contents
+          echo "Deployment package contents:"
+          unzip -l deploy.zip | grep -E "(appspec\.yml|scripts/.*\.sh)"
 
       - name: Upload to S3
         run: |
@@ -67,7 +73,7 @@ jobs:
           DEPLOYMENT_ID=$(aws deploy create-deployment \
             --application-name ${{ secrets.AWS_CODEDEPLOY_APP_NAME }} \
             --deployment-group-name ${{ secrets.AWS_CODEDEPLOY_GROUP_NAME }} \
-            --s3-location bucket=${{ secrets.AWS_S3_BUCKET }},bundleType=zip,key=deploy.zip \
+            --s3-location bucket=${{ secrets.AWS_S3_BUCKET }}, bundleType=zip, key=deploy.zip \
             --file-exists-behavior OVERWRITE \
             --query 'deploymentId' \
             --output text)
@@ -100,10 +106,18 @@ jobs:
               # Get deployment details for debugging
               aws deploy get-deployment --deployment-id $DEPLOYMENT_ID
               
-              # Get deployment logs
-              aws deploy get-deployment-target \
-                --deployment-id $DEPLOYMENT_ID \
-                --target-id $DEPLOYMENT_ID
+                           # Get deployment logs
+             echo "Deployment logs:"
+             aws deploy get-deployment-target \
+               --deployment-id $DEPLOYMENT_ID \
+               --target-id $DEPLOYMENT_ID
+             
+             # Get deployment events
+             echo "Deployment events:"
+             aws deploy get-deployment \
+               --deployment-id $DEPLOYMENT_ID \
+               --query 'deploymentInfo.deploymentOverview' \
+               --output table
               
               exit 1
             fi
