@@ -4,8 +4,6 @@ os: linux
 files:
   - source: /
     destination: /home/ubuntu/debuggers-backend/
-  - source: scripts/
-    destination: /home/ubuntu/debuggers-backend/scripts/
 
 permissions:
   - object: /home/ubuntu/debuggers-backend/
