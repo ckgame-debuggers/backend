@@ -4,10 +4,11 @@
 # This script runs to start the application
 
 set -e
+cd /home/ubuntu/debuggers-backend
 
 echo "Starting ApplicationStart script..."
 
-# pm2로 앱 실행 (예시)
+# pm2로 앱 실행
 pm2 start dist/main.js --name debuggers-backend
 
 # pm2 상태 확인
