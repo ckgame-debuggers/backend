@@ -23,9 +23,18 @@ if ! command -v pnpm &> /dev/null; then
     sudo npm install -g pnpm
 fi
 
+# Clean previous installations
+echo "Cleaning previous installations..."
+rm -rf node_modules
+rm -rf dist
+
 # Install dependencies
 echo "Installing dependencies..."
 pnpm install --frozen-lockfile
+
+# Rebuild native modules for current architecture
+echo "Rebuilding native modules..."
+pnpm rebuild
 
 # Build the application
 echo "Building application..."
@@ -39,29 +48,10 @@ sudo chmod -R 755 /home/ubuntu/debuggers-backend
 sudo mkdir -p /var/log/debuggers-backend
 sudo chown ubuntu:ubuntu /var/log/debuggers-backend
 
-# Create systemd service file
-sudo tee /etc/systemd/system/debuggers-backend.service > /dev/null <<EOF
-[Unit]
-Description=Debuggers Backend API
-After=network.target
-
-[Service]
-Type=simple
-User=ubuntu
-WorkingDirectory=/home/ubuntu/debuggers-backend
-ExecStart=/usr/bin/node dist/main.js
-Restart=always
-RestartSec=10
-StandardOutput=journal
-StandardError=journal
-Environment=NODE_ENV=production
-
-[Install]
-WantedBy=multi-user.target
-EOF
-
-# Reload systemd and enable service
-sudo systemctl daemon-reload
-sudo systemctl enable debuggers-backend.service
+# Install pm2 if not already installed
+if ! command -v pm2 &> /dev/null; then
+    echo "Installing pm2..."
+    sudo npm install -g pm2
+fi
 
 echo "AfterInstall script completed successfully." 

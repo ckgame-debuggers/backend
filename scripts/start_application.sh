@@ -8,7 +8,19 @@ cd /home/ubuntu/debuggers-backend
 
 echo "Starting ApplicationStart script..."
 
+# Install pm2 if not already installed
+if ! command -v pm2 &> /dev/null; then
+    echo "Installing pm2..."
+    sudo npm install -g pm2
+fi
+
+# Stop existing process if running
+echo "Stopping existing process..."
+pm2 stop debuggers-backend || true
+pm2 delete debuggers-backend || true
+
 # pm2로 앱 실행
+echo "Starting application with pm2..."
 pm2 start dist/main.js --name debuggers-backend
 
 # pm2 상태 확인

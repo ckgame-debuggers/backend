@@ -7,24 +7,17 @@ set -e
 
 echo "Starting ApplicationStop script..."
 
-# Stop the application using systemd
-if sudo systemctl is-active --quiet debuggers-backend.service; then
-    echo "Stopping debuggers-backend service..."
-    sudo systemctl stop debuggers-backend.service
-    
-    # Wait for the service to stop
-    sleep 5
-    
-    # Check if the service has stopped
-    if sudo systemctl is-active --quiet debuggers-backend.service; then
-        echo "❌ Failed to stop application"
-        sudo systemctl status debuggers-backend.service --no-pager
-        exit 1
-    else
-        echo "✅ Application stopped successfully"
-    fi
+# Navigate to application directory
+cd /home/ubuntu/debuggers-backend
+
+# Stop the application using pm2
+if command -v pm2 &> /dev/null; then
+    echo "Stopping debuggers-backend with pm2..."
+    pm2 stop debuggers-backend || true
+    pm2 delete debuggers-backend || true
+    echo "✅ Application stopped successfully"
 else
-    echo "Application is not running, skipping stop"
+    echo "pm2 not found, skipping pm2 stop"
 fi
 
 # Kill any remaining Node.js processes (fallback)
