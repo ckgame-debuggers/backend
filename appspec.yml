@@ -4,9 +4,19 @@ os: linux
 files:
   - source: /
     destination: /home/ubuntu/debuggers-backend/
+  - source: scripts/
+    destination: /home/ubuntu/debuggers-backend/scripts/
 
 permissions:
   - object: /home/ubuntu/debuggers-backend/
+    pattern: '**'
+    owner: ubuntu
+    group: ubuntu
+    mode: 755
+    type:
+      - directory
+      - file
+  - object: /home/ubuntu/debuggers-backend/scripts/
     pattern: '**'
     owner: ubuntu
     group: ubuntu
