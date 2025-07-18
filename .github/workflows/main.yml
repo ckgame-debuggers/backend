@@ -53,31 +53,13 @@ jobs:
       - name: Check environment variables
         run: node scripts/check-env.js
 
-      - name: Build application
-        run: npm run build
-
-      - name: Copy .env to dist
-        run: cp .env dist/.env
-
       - name: Create deployment package
         run: |
           # Make scripts executable
           chmod +x scripts/*.sh
 
-          # Create deployment package from dist folder
-          cd dist
-          # Copy scripts folder to dist
-          cp -r ../scripts .
-          # Copy appspec.yml to dist
-          cp ../appspec.yml .
-          # Copy package.json to dist
-          cp ../package.json .
-          # Copy pnpm-lock.yaml to dist
-          cp ../pnpm-lock.yaml .
-
-          # Create deployment package from dist
-          zip -r ../deploy.zip . -x "*.git*" "node_modules/*"
-          cd ..
+          # Create deployment package from entire project
+          zip -r deploy.zip . -x "*.git*" "node_modules/*" "dist/*"
 
           # Verify package contents
           echo "=== Deployment package contents ==="
