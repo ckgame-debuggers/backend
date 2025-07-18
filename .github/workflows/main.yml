@@ -56,6 +56,9 @@ jobs:
       - name: Build application
         run: npm run build
 
+      - name: Copy .env to dist
+        run: cp .env dist/.env
+
       - name: Create deployment package
         run: |
           # Make scripts executable
@@ -71,8 +74,6 @@ jobs:
           cp ../package.json .
           # Copy pnpm-lock.yaml to dist
           cp ../pnpm-lock.yaml .
-          # Copy .env to dist
-          cp ../.env
 
           # Create deployment package from dist
           zip -r ../deploy.zip . -x "*.git*" "node_modules/*"
