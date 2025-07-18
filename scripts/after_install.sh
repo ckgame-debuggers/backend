@@ -20,7 +20,7 @@ fi
 # Install pnpm if not already installed
 if ! command -v pnpm &> /dev/null; then
     echo "Installing pnpm..."
-    npm install -g pnpm
+    sudo npm install -g pnpm
 fi
 
 # Install dependencies
