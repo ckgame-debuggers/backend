@@ -12,6 +12,7 @@ import { GlobalModule } from './api/global/global.module';
 import { PublicModule } from './api/public/public.module';
 import { ThrottlerModule } from '@nestjs/throttler';
 import { SchedulerModule } from './common/modules/scheduler.module';
+import { CommunityModule } from './api/community/community.module';
 
 @Module({
   imports: [
@@ -36,6 +37,7 @@ import { SchedulerModule } from './common/modules/scheduler.module';
     GlobalModule,
     PublicModule,
     SchedulerModule,
+    CommunityModule,
   ],
   controllers: [AppController],
   providers: [AppService],

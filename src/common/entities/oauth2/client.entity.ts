@@ -26,6 +26,11 @@ export class Oauth2ClientEntity {
 
   @Column({ default: false })
   useOauth: boolean;
+  @Column({
+    default: () =>
+      `'${Math.random().toString(36).substring(2, 10)}${Math.random().toString(36).substring(2, 9)}'`,
+  })
+  nonce: string;
 
   @OneToMany(() => Oauth2ConnectedEntity, (connect) => connect.client)
   connect: Oauth2ConnectedEntity[];

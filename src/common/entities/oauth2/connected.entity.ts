@@ -16,9 +16,6 @@ export class Oauth2ConnectedEntity {
   @PrimaryGeneratedColumn('uuid')
   id: string;
 
-  @Column({ nullable: true })
-  nonce?: string;
-
   @Column()
   connectedAt: string;
 

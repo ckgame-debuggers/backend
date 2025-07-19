@@ -68,10 +68,6 @@ export class SmtpService {
       throw new ConflictException(
         `User with email ${getCodeDto.email} already exists`,
       );
-    } else if (!user) {
-      throw new ConflictException(
-        `User with email ${getCodeDto.email} not exists`,
-      );
     }
 
     const oldVerifyCode = await certRepository.findBy({

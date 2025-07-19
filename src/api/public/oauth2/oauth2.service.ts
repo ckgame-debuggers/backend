@@ -279,10 +279,6 @@ export class Oauth2Service {
         connectedAt: new Date().toUTCString(),
       });
 
-      if (authorizeData.nonce) {
-        connected.nonce = authorizeData.nonce;
-      }
-
       await repositories.connected.save(connected);
       await queryRunner.commitTransaction();
 
@@ -381,7 +377,6 @@ export class Oauth2Service {
   async generateOpenIDToken(
     userId: number,
     client: Oauth2ClientEntity,
-    nonce?: string,
   ): Promise<string> {
     const [user, connect] = await Promise.all([
       this.dataSource.getRepository(UserEntity).findOneBy({ id: userId }),
@@ -404,10 +399,6 @@ export class Oauth2Service {
       iat: now,
       exp: now + OPENID_TOKEN_EXPIRY,
     };
-
-    if (nonce) {
-      payload.nonce = nonce;
-    }
 
     // Add user claims based on agreed scopes
     if (connect?.agreed) {
@@ -535,7 +526,7 @@ export class Oauth2Service {
     const [accessToken, refreshToken, idToken] = await Promise.all([
       this.generateAccessToken(authInfo.user.id, client.id),
       this.generateRefreshToken(authInfo.user.id, client),
-      this.generateOpenIDToken(authInfo.user.id, client, authInfo.nonce),
+      this.generateOpenIDToken(authInfo.user.id, client),
     ]);
 
     const scope = authInfo.agreed.map((agree) => agree.title).join(',');
