@@ -68,7 +68,7 @@ export class SmtpService {
       throw new ConflictException(
         `User with email ${getCodeDto.email} already exists`,
       );
-    } else if (getCodeDto.type !== 'register' && !user) {
+    } else if (getCodeDto.type && getCodeDto.type !== 'register' && !user) {
       throw new ConflictException(
         `User with email ${getCodeDto.email} not exists`,
       );
