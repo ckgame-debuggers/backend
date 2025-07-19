@@ -36,6 +36,14 @@ export class UserEntity {
   @Column()
   password: string;
 
+  @Column({ default: 'yellow' })
+  color: string;
+
+  @Column({
+    nullable: true,
+  })
+  profile?: string;
+
   @Column({ default: 0 })
   permission: number;
 

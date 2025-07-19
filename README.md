@@ -4,53 +4,53 @@
 
 # 프로젝트 디버거즈
 
-<b>Many things still need to be implemented, and many things will change.<b/>
+<b>많은 기능들이 아직 개선이 필요합니다. 해당 레포지토리의 내용은 언제든 변경될 수 있습니다.</b>
 
 </div>
 
-# Project Stack
+# 프로젝트 스택
 
 - Nest.js
 - TypeORM
 - Postgres
 
-# Running on your machine
+# 로컬 기기에서 실행하기
 
-## Requirements
+## 요구 사항
 
 - Node.js ^21.6 (Recommend)
 - pnpm
 
-## Installation
+## 설치
 
-1. Clone the project
+1. 프로젝트를 클론합니다.
 
 ```cmd
 $ git clone https://github.com/odin-store/native.git
 ```
 
-2. Install packages via pnpm
+2. pnpm을 통해 필요 패키지를 설치합니다.
 
 ```cmd
 $ pnpm install
 ```
 
-3. Copy `env.sample` to `.env` and configure your environment variables.
+3. `env.sample`를 복사해 `.env`에 필요한 환경 변수들을 모두 설정합니다.
 
 ```bash
 cp env.sample .env
 ```
 
-Then edit `.env` file with your actual values. All required environment variables are validated on application startup.
+`.env` 파일을 전부 당신의 환경에 맞는 값으로 설정해 주세요. 프로그램 실행 이전 환경 변수를 자동으로 검증할 것입니다.
 
-**Required Environment Variables:**
+**필요한 환경 변수 목록:**
 
-- **JWT Configuration**: `JWT_SECRET`, `JWT_ACCESS_EXPIRES_IN`, `JWT_REFRESH_EXPIRATION_TIME`
-- **Database Configuration**: `DATABASE_URL`, `DATABASE_PORT`, `DATABASE_NAME`, `DATABASE_USER`, `DATABASE_PASSWORD`
-- **Mail Configuration**: `MAIL_HOST`, `MAIL_PORT`, `MAIL_USER`, `MAIL_PASS`, `MAIL_FROM`
-- **Application Configuration**: `FRONT_URL`, `PORT`
+- **JWT 설정n**: `JWT_SECRET`, `JWT_ACCESS_EXPIRES_IN`, `JWT_REFRESH_EXPIRATION_TIME`
+- **데이터베이스 설정**: `DATABASE_URL`, `DATABASE_PORT`, `DATABASE_NAME`, `DATABASE_USER`, `DATABASE_PASSWORD`
+- **메일 설정**: `MAIL_HOST`, `MAIL_PORT`, `MAIL_USER`, `MAIL_PASS`, `MAIL_FROM`
+- **애플리케이션 설정**: `FRONT_URL`, `PORT`
 
-**Example .env file:**
+**.env 파일 예시:**
 
 ```env
 NODE_ENV=development
@@ -74,11 +74,9 @@ MAIL_PASS=your-app-password
 MAIL_FROM=your-email@gmail.com
 ```
 
-> You can get your portone api info from [here](https://portone.io/)
+## 실행하기
 
-## Start your own client
-
-Enter the command below to start your client.
+당신의 애플리케이션은 아래 명령어로 실행 가능합니다.
 
 ```cmd
 $ pnpm start

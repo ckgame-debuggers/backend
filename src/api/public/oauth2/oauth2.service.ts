@@ -634,12 +634,7 @@ export class Oauth2Service {
   /**
    * Gets user information with scope validation
    */
-  async getUserInfo(
-    type: string,
-    token: string,
-    target_type?: string,
-    target_id?: string,
-  ): Promise<UserInfoResponse> {
+  async getUserInfo(type: string, token: string): Promise<UserInfoResponse> {
     const authInfo = await this.verifyAuthorization(type, token);
 
     if (type !== 'Bearer' || !authInfo.bearer) {

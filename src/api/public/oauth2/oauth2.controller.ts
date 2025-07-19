@@ -84,9 +84,6 @@ export class Oauth2Controller {
   @Get('user/me')
   async getUserInfo(
     @Headers('Authorization') auth: string,
-    @Query('property_keys') propertyKeys?: string[],
-    @Query('target_types') targetTypes?: string,
-    @Query('target_id') targetId?: string,
   ): Promise<UserInfoResponse> {
     if (!auth) {
       throw new BadRequestException('Authorization header is required');
@@ -97,6 +94,6 @@ export class Oauth2Controller {
       throw new BadRequestException('Invalid authorization header format');
     }
 
-    return this.oauth2Service.getUserInfo(type, token, targetTypes, targetId);
+    return this.oauth2Service.getUserInfo(type, token);
   }
 }

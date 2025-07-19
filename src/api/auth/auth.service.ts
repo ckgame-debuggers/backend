@@ -64,6 +64,7 @@ export class AuthService {
     if (oldUser) {
       throw new ConflictException('This email is already registered.');
     }
+    const colorList = ['red', 'blue', 'yellow', 'green'];
 
     const saltRounds = 10;
     const salt = await bcrypt.genSalt(saltRounds);
@@ -75,6 +76,7 @@ export class AuthService {
       password: hashedPassword,
       fullname: registerDto.fullname,
       schoolNumber: registerDto.email.split('@')[0],
+      color: colorList[Math.floor(Math.random() * colorList.length)],
     });
     await userRepository.save(generated);
     this.logger.log(`Created new user with : ${registerDto.email}`);
@@ -149,7 +151,9 @@ export class AuthService {
       username: user.username,
       email: user.email,
       schoolNumber: user.schoolNumber,
+      color: user.color,
     };
+    if (user.profile) payload.profile = user.profile;
     const newToken = await this.jwtService.signAsync(payload);
     this.logger.log(`Generated new access token for user : ${user.email}`);
     return {
