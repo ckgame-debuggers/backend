@@ -38,7 +38,7 @@ export class SmtpService {
           );
         }
       },
-      3 * 60 * 1000,
+      5 * 60 * 1000,
     );
   }
 
@@ -67,6 +67,10 @@ export class SmtpService {
     if (getCodeDto.type === 'register' && user) {
       throw new ConflictException(
         `User with email ${getCodeDto.email} already exists`,
+      );
+    } else if (getCodeDto.type !== 'register' && !user) {
+      throw new ConflictException(
+        `User with email ${getCodeDto.email} not exists`,
       );
     }
 
