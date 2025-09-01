@@ -36,7 +36,7 @@ rm -rf dist
 
 # Install dependencies
 echo "Installing dependencies..."
-pnpm install --frozen-lockfile
+pnpm install --no-frozen-lockfile
 
 # Rebuild native modules for current architecture
 # Skipping pnpm rebuild to shorten AfterInstall time and avoid long hangs
