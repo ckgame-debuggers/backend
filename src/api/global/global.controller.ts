@@ -6,28 +6,21 @@ import {
   Req,
   UseGuards,
   Request,
+  Query,
 } from '@nestjs/common';
 import { GlobalService } from './global.service';
-import { CreateBannerDto } from 'src/common/dto/global/create-banner.dto';
-import { AuthGuard } from 'src/common/guards/auth.guard';
-import { User } from 'src/common/decorator/get-user';
 
 @Controller('global')
 export class GlobalController {
   constructor(private readonly globalService: GlobalService) {}
 
+  @Get('about')
+  async getAbout() {
+    return this.globalService.getAbout();
+  }
   @Get('banners')
   async getAllBanners() {
     return this.globalService.getAllBanners();
-  }
-
-  @UseGuards(AuthGuard)
-  @Post('banners')
-  async createBanner(
-    @Body() createBannerDto: CreateBannerDto,
-    @User('id') userId: number,
-  ) {
-    return this.globalService.createBanners(createBannerDto, userId);
   }
 
   @Get('solved-bug-count')
@@ -38,5 +31,20 @@ export class GlobalController {
   @Get('related-sites')
   async getRelatedSite() {
     return this.globalService.getRelatedSites();
+  }
+
+  @Get('notice')
+  async getNotice(@Query('id') id: number) {
+    return this.globalService.getNotice(id);
+  }
+
+  @Get('notices')
+  async getNotices() {
+    return this.globalService.getNotices();
+  }
+
+  @Get('infos')
+  async getUserCount() {
+    return this.globalService.getInfos();
   }
 }

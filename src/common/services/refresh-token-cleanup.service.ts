@@ -72,9 +72,22 @@ export class RefreshTokenCleanupService {
     while (hasMore) {
       // 배치 단위로 만료된 토큰들의 ID를 조회
       const expiredTokens = await repository
-        .createQueryBuilder('refresh')
-        .select('refresh.id')
-        .where('refresh.exp < :now', { now })
+        .createQueryBuilder(
+          repository === this.oauth2RefreshTokenRepository
+            ? 'oauth2_refresh'
+            : 'refresh',
+        )
+        .select(
+          repository === this.oauth2RefreshTokenRepository
+            ? 'oauth2_refresh.id'
+            : 'refresh.id',
+        )
+        .where(
+          repository === this.oauth2RefreshTokenRepository
+            ? 'oauth2_refresh.exp < :now'
+            : 'refresh.exp < :now',
+          { now },
+        )
         .limit(batchSize)
         .getMany();
 

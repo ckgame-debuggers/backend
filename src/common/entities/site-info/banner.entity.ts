@@ -1,6 +1,6 @@
 import { Column, Entity, PrimaryGeneratedColumn } from 'typeorm';
 
-@Entity('site-banner')
+@Entity('global-banner')
 export class BannerEntity {
   @PrimaryGeneratedColumn()
   id: number;
@@ -9,7 +9,7 @@ export class BannerEntity {
   title: string;
 
   @Column()
-  desription: string;
+  contents: string;
 
   @Column()
   image: string;

@@ -1,6 +1,6 @@
 import { Column, Entity, PrimaryGeneratedColumn } from 'typeorm';
 
-@Entity('related-sites')
+@Entity('global-related-sites')
 export class RelatedSiteEntity {
   @PrimaryGeneratedColumn()
   id: number;

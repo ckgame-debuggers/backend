@@ -13,6 +13,8 @@ import { PublicModule } from './api/public/public.module';
 import { ThrottlerModule } from '@nestjs/throttler';
 import { SchedulerModule } from './common/modules/scheduler.module';
 import { CommunityModule } from './api/community/community.module';
+import { AdminModule } from './api/admin/admin.module';
+import { CloudflareModule } from './providers/cloudflare/cloudflare.module';
 
 @Module({
   imports: [
@@ -38,6 +40,8 @@ import { CommunityModule } from './api/community/community.module';
     PublicModule,
     SchedulerModule,
     CommunityModule,
+    AdminModule,
+    CloudflareModule,
   ],
   controllers: [AppController],
   providers: [AppService],

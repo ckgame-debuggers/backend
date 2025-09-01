@@ -44,6 +44,8 @@ jobs:
           echo "MAIL_PASS='${{ secrets.MAIL_PASS }}'" >> .env
           echo "MAIL_FROM='${{ secrets.MAIL_FROM }}'" >> .env
           echo "FRONT_URL='${{ secrets.FRONT_URL }}'" >> .env
+          echo "CLOUDFLARE_ID='${{ secrets.CLOUDFLARE_ID }}'" >> .env
+          echo "CLOUDFLARE_SECRET='${{ secrets.CLOUDFLARE_SECRET }}'" >> .env
           echo "Environment variables created:"
           cat .env
 

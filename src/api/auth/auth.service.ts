@@ -148,12 +148,7 @@ export class AuthService {
   async generateAccessToken(user: UserEntity): Promise<ResultType<string>> {
     const payload: JwtPayload = {
       id: user.id,
-      username: user.username,
-      email: user.email,
-      schoolNumber: user.schoolNumber,
-      color: user.color,
     };
-    if (user.profile) payload.profile = user.profile;
     const newToken = await this.jwtService.signAsync(payload);
     this.logger.log(`Generated new access token for user : ${user.email}`);
     return {
@@ -408,5 +403,42 @@ export class AuthService {
       tel: found.tel,
       fullName: found.fullname,
     };
+  }
+
+  async getUserInfo(userId: number): Promise<{
+    id: number;
+    username: string;
+    email: string;
+    schoolNumber: string;
+    color: string;
+    profile?: string;
+    permission: number;
+  }> {
+    const userRepository = this.dataSource.getRepository(UserEntity);
+    const found = await userRepository.findOneBy({
+      id: userId,
+    });
+    if (!found) {
+      throw new NotFoundException('User not found.');
+    }
+    const data: {
+      id: number;
+      username: string;
+      email: string;
+      schoolNumber: string;
+      color: string;
+      profile?: string;
+      permission: number;
+    } = {
+      id: found.id,
+      username: found.username,
+      email: found.email,
+      schoolNumber: found.schoolNumber,
+      color: found.color,
+      permission: found.permission,
+    };
+    if (found.profile) data.profile = found.profile;
+
+    return data;
   }
 }

@@ -67,7 +67,7 @@ export const resetPasswordTemplate = `
         </td>
     </tr>
     <tr>
-        <td style="font-size: 12px; color:white">Copyright © Since 2025 - Deuggers</td>
+        <td style="font-size: 12px; color:white">Copyright © Since 2025 - Debuggers</td>
     </tr>
     </tbody>
 </table>

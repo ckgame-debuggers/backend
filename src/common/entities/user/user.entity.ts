@@ -4,6 +4,7 @@ import {
   Index,
   ManyToMany,
   OneToMany,
+  OneToOne,
   PrimaryGeneratedColumn,
 } from 'typeorm';
 import { RefreshEntity } from './refresh.entity';
@@ -13,6 +14,7 @@ import { CrewCreateRequestEntity } from '../crew/crew-create-request.entity';
 import { DebuggersBugEntity } from '../debuggers/bug.entity';
 import { DebuggersCommentEntity } from '../debuggers/comment.entity';
 import { Oauth2ConnectedEntity } from '../oauth2/connected.entity';
+import { CommunityUserEntity } from '../community/user.entity';
 
 @Entity('users')
 export class UserEntity {
@@ -52,6 +54,9 @@ export class UserEntity {
 
   @Column({ type: 'enum', enum: ['male', 'female'], nullable: true })
   gender?: 'male' | 'female';
+
+  @OneToOne(() => CommunityUserEntity, (communityInfo) => communityInfo.user)
+  communityInfo: CommunityUserEntity;
 
   @OneToMany(() => Oauth2ConnectedEntity, (connected) => connected.user)
   connectedService: Oauth2ConnectedEntity[];

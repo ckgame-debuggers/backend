@@ -66,17 +66,30 @@ export class Oauth2Service {
     value: string,
     accept: string[] = ['Bearer'],
   ): Promise<verifyAuthorizationReturnType> {
+    this.logger.debug(
+      `Verifying authorization - Type: ${type}, Accept: ${accept.join(',')}`,
+    );
+
     if (!type || !value) {
+      this.logger.warn(
+        'Authorization verification failed: Missing type or value',
+      );
       throw new BadRequestException('Authorization header is required');
     }
 
     if (!accept.includes(type)) {
+      this.logger.warn(
+        `Authorization verification failed: Unsupported type ${type}`,
+      );
       throw new BadRequestException(`Unsupported authorization type: ${type}`);
     }
 
     if (type === 'Bearer') {
       try {
         const verified = await this.jwtService.verify(value);
+        this.logger.debug(
+          `Bearer token verified successfully for user ${verified.user_id}`,
+        );
         return { type: 'Bearer', bearer: verified };
       } catch (error) {
         this.logger.warn(`Token verification failed: ${error.message}`);
@@ -84,6 +97,7 @@ export class Oauth2Service {
       }
     }
 
+    this.logger.warn(`Invalid token type: ${type}`);
     throw new BadRequestException('Invalid token type');
   }
 
@@ -91,13 +105,17 @@ export class Oauth2Service {
    * Validates client ID format and existence
    */
   private async validateClient(clientId: string): Promise<Oauth2ClientEntity> {
+    this.logger.debug(`Validating client ID: ${clientId}`);
+
     if (!CLIENT_ID_REGEX.test(clientId)) {
+      this.logger.warn(`Invalid client ID format: ${clientId}`);
       throw new NotFoundException('Invalid client ID format');
     }
 
     // Check cache first
     const cached = this.clientCache.get(clientId);
     if (cached && Date.now() - cached.timestamp < this.CACHE_TTL) {
+      this.logger.debug(`Client found in cache: ${clientId}`);
       return cached.data;
     }
 
@@ -109,9 +127,11 @@ export class Oauth2Service {
       });
 
     if (!client || !client.useOauth) {
+      this.logger.warn(`Client not found or OAuth disabled: ${clientId}`);
       throw new NotFoundException('OAuth2 client not found or disabled');
     }
 
+    this.logger.debug(`Client validated and cached: ${clientId}`);
     // Cache the result
     this.clientCache.set(clientId, { data: client, timestamp: Date.now() });
     return client;
@@ -121,6 +141,10 @@ export class Oauth2Service {
    * Retrieves OAuth2 application details with caching
    */
   async getApplication(id: string, userId: number): Promise<ApplicationInfo> {
+    this.logger.log(
+      `Getting application info - Client ID: ${id}, User ID: ${userId}`,
+    );
+
     const client = await this.validateClient(id);
 
     const [user, connected, toAgree] = await Promise.all([
@@ -139,10 +163,12 @@ export class Oauth2Service {
     ]);
 
     if (!user) {
+      this.logger.warn(`User not found: ${userId}`);
       throw new ForbiddenException('Authentication required');
     }
 
     if (connected) {
+      this.logger.warn(`User ${userId} already connected to client ${id}`);
       throw new ConflictException('Already connected to this application');
     }
 
@@ -160,6 +186,10 @@ export class Oauth2Service {
         display: agree.scope.title,
       }));
 
+    this.logger.debug(
+      `Application info retrieved - Must agree: ${mustAgree.length}, Consent items: ${consentItems.length}`,
+    );
+
     return {
       title: client.title,
       profile: client.profile,
@@ -175,6 +205,10 @@ export class Oauth2Service {
     authorizeData: CreateAuthorizationCodeDto,
     userId: number,
   ): Promise<AuthorizationResponse> {
+    this.logger.log(
+      `Starting authorization process - User ID: ${userId}, Client ID: ${authorizeData.client_id}`,
+    );
+
     const queryRunner = this.dataSource.createQueryRunner();
     await queryRunner.connect();
     await queryRunner.startTransaction();
@@ -202,10 +236,14 @@ export class Oauth2Service {
       ]);
 
       if (!user || !client) {
+        this.logger.warn(
+          `User or client not found - User: ${userId}, Client: ${authorizeData.client_id}`,
+        );
         throw new NotFoundException('User or client not found');
       }
 
       if (!client.useOauth) {
+        this.logger.warn(`OAuth disabled for client: ${client.id}`);
         throw new ForbiddenException('OAuth is not enabled for this client');
       }
 
@@ -218,6 +256,7 @@ export class Oauth2Service {
       });
 
       if (!redirect) {
+        this.logger.warn(`Invalid redirect URL: ${authorizeData.redirect_to}`);
         throw new ConflictException('Invalid redirect URL');
       }
 
@@ -230,6 +269,9 @@ export class Oauth2Service {
       });
 
       if (existingConnection) {
+        this.logger.warn(
+          `User ${userId} already connected to client ${client.id}`,
+        );
         throw new ConflictException('User is already connected to this client');
       }
 
@@ -251,11 +293,18 @@ export class Oauth2Service {
         ),
       ).map(String);
 
+      this.logger.debug(
+        `Processing scopes - Required: ${requiredScopes.join(',')}, Agreed: ${agreedIds.join(',')}`,
+      );
+
       const missingRequiredScopes = requiredScopes.filter(
         (id) => !agreedIds.includes(id),
       );
 
       if (missingRequiredScopes.length > 0) {
+        this.logger.warn(
+          `Missing required scopes: ${missingRequiredScopes.join(',')}`,
+        );
         throw new ForbiddenException('Missing required scopes');
       }
 
@@ -268,6 +317,7 @@ export class Oauth2Service {
       });
 
       if (agreedScopes.length !== finalScopeIds.length) {
+        this.logger.warn('Some scopes do not exist');
         throw new NotFoundException('Some scopes do not exist');
       }
 
@@ -283,7 +333,7 @@ export class Oauth2Service {
       await queryRunner.commitTransaction();
 
       this.logger.log(
-        `Authorization successful for user ${userId} to client ${client.id}`,
+        `Authorization successful - User: ${userId}, Client: ${client.id}, Scopes: ${agreedScopes.map((s) => s.title).join(',')}`,
       );
 
       return {
@@ -291,6 +341,7 @@ export class Oauth2Service {
         message: 'Authorization successful',
       };
     } catch (error) {
+      this.logger.error(`Authorization failed: ${error.message}`);
       await queryRunner.rollbackTransaction();
       throw error;
     } finally {
@@ -305,6 +356,10 @@ export class Oauth2Service {
     getConnectInfo: GetConnectInfoDto,
     userId: number,
   ): Promise<ConnectInfoResponse> {
+    this.logger.log(
+      `Getting connection info - User: ${userId}, Client: ${getConnectInfo.clientId}`,
+    );
+
     const [user, client, redirect, connectInfo] = await Promise.all([
       this.dataSource.getRepository(UserEntity).findOneBy({ id: userId }),
       this.dataSource.getRepository(Oauth2ClientEntity).findOneBy({
@@ -326,16 +381,27 @@ export class Oauth2Service {
     ]);
 
     if (!user || !client) {
+      this.logger.warn(
+        `User or client not found - User: ${userId}, Client: ${getConnectInfo.clientId}`,
+      );
       throw new NotFoundException('User or client not found');
     }
 
     if (!redirect || !getConnectInfo.redirectTo) {
+      this.logger.warn(`Invalid redirect URL: ${getConnectInfo.redirectTo}`);
       throw new BadRequestException('Invalid redirect URL');
     }
 
     if (!connectInfo) {
+      this.logger.warn(
+        `Connection not found - User: ${userId}, Client: ${getConnectInfo.clientId}`,
+      );
       throw new NotFoundException('Connection not found');
     }
+
+    this.logger.debug(
+      `Connection info retrieved successfully - Code: ${connectInfo.id}`,
+    );
 
     return {
       code: connectInfo.id,
@@ -352,6 +418,10 @@ export class Oauth2Service {
    * Generates access token with optimized payload
    */
   async generateAccessToken(userId: number, clientId: string) {
+    this.logger.debug(
+      `Generating access token - User: ${userId}, Client: ${clientId}`,
+    );
+
     const payload: Oauth2JwtPayload = {
       user_id: userId,
       app_id: clientId,
@@ -363,7 +433,9 @@ export class Oauth2Service {
 
     const decodedToken = this.jwtService.decode(token) as { exp: number };
 
-    this.logger.log(`Generated access token for user: ${userId}`);
+    this.logger.log(
+      `Access token generated - User: ${userId}, Expires: ${new Date(decodedToken.exp * 1000).toISOString()}`,
+    );
 
     return {
       access_token: token,
@@ -378,6 +450,10 @@ export class Oauth2Service {
     userId: number,
     client: Oauth2ClientEntity,
   ): Promise<string> {
+    this.logger.debug(
+      `Generating OpenID token - User: ${userId}, Client: ${client.id}`,
+    );
+
     const [user, connect] = await Promise.all([
       this.dataSource.getRepository(UserEntity).findOneBy({ id: userId }),
       this.dataSource.getRepository(Oauth2ConnectedEntity).findOne({
@@ -387,6 +463,9 @@ export class Oauth2Service {
     ]);
 
     if (!user || !client) {
+      this.logger.warn(
+        `User or client not found - User: ${userId}, Client: ${client.id}`,
+      );
       throw new ForbiddenException('User or client not found');
     }
 
@@ -412,7 +491,9 @@ export class Oauth2Service {
     }
 
     const token = await this.jwtService.signAsync(payload);
-    this.logger.log(`Generated OpenID token for user: ${userId}`);
+    this.logger.log(
+      `OpenID token generated - User: ${userId}, Expires: ${new Date(payload.exp * 1000).toISOString()}`,
+    );
 
     return token;
   }
@@ -421,6 +502,10 @@ export class Oauth2Service {
    * Generates refresh token with secure storage
    */
   async generateRefreshToken(userId: number, client: Oauth2ClientEntity) {
+    this.logger.debug(
+      `Generating refresh token - User: ${userId}, Client: ${client.id}`,
+    );
+
     const [user, currentRefresh] = await Promise.all([
       this.dataSource.getRepository(UserEntity).findOneBy({ id: userId }),
       this.dataSource.getRepository(Oauth2RefreshTokenEntity).findOneBy({
@@ -430,11 +515,13 @@ export class Oauth2Service {
     ]);
 
     if (!user) {
+      this.logger.warn(`User not found: ${userId}`);
       throw new ForbiddenException('User not found');
     }
 
     // Remove existing refresh token
     if (currentRefresh) {
+      this.logger.debug(`Removing existing refresh token for user ${userId}`);
       await this.dataSource
         .getRepository(Oauth2RefreshTokenEntity)
         .delete(currentRefresh);
@@ -466,7 +553,7 @@ export class Oauth2Service {
       .save(refreshEntity);
 
     this.logger.log(
-      `Generated refresh token for user: ${user.email}, client: ${client.title}`,
+      `Refresh token generated - User: ${user.email}, Client: ${client.title}, Expires: ${new Date(decodedToken.exp * 1000).toISOString()}`,
     );
 
     return {
@@ -479,11 +566,16 @@ export class Oauth2Service {
    * Handles token exchange with enhanced security
    */
   async getToken(tokenData: Oauth2GetTokenDto): Promise<TokenResponse> {
+    this.logger.log(
+      `Processing token request - Grant Type: ${tokenData.grant_type}`,
+    );
+
     if (tokenData.grant_type === 'authorization_code') {
       return this.handleAuthorizationCode(tokenData);
     } else if (tokenData.grant_type === 'refresh_token') {
       return this.handleRefreshToken(tokenData);
     } else {
+      this.logger.warn(`Unsupported grant type: ${tokenData.grant_type}`);
       throw new BadRequestException('Unsupported grant type');
     }
   }
@@ -494,7 +586,12 @@ export class Oauth2Service {
   private async handleAuthorizationCode(
     tokenData: Oauth2GetTokenDto,
   ): Promise<TokenResponse> {
+    this.logger.debug(
+      `Handling authorization code grant - Code: ${tokenData.code}`,
+    );
+
     if (!tokenData.code) {
+      this.logger.warn('Missing authorization code');
       throw new BadRequestException('Authorization code is required');
     }
 
@@ -507,6 +604,7 @@ export class Oauth2Service {
     );
 
     if (!isValidSecret) {
+      this.logger.warn(`Invalid client secret for client: ${client.id}`);
       throw new ForbiddenException('Invalid client secret');
     }
 
@@ -519,6 +617,7 @@ export class Oauth2Service {
       });
 
     if (!authInfo) {
+      this.logger.warn(`Authorization code not found: ${tokenData.code}`);
       throw new NotFoundException('Authorization code not found or expired');
     }
 
@@ -530,6 +629,10 @@ export class Oauth2Service {
     ]);
 
     const scope = authInfo.agreed.map((agree) => agree.title).join(',');
+
+    this.logger.log(
+      `Authorization code exchange successful - User: ${authInfo.user.id}, Client: ${client.id}`,
+    );
 
     return {
       token_type: 'bearer',
@@ -548,7 +651,10 @@ export class Oauth2Service {
   private async handleRefreshToken(
     tokenData: Oauth2GetTokenDto,
   ): Promise<TokenResponse> {
+    this.logger.debug('Handling refresh token grant');
+
     if (!tokenData.refresh_token) {
+      this.logger.warn('Missing refresh token');
       throw new BadRequestException('Refresh token is required');
     }
 
@@ -565,6 +671,7 @@ export class Oauth2Service {
         .findOneBy({ id: payload.client_id });
 
       if (!client) {
+        this.logger.warn(`Client not found: ${payload.client_id}`);
         throw new NotFoundException('Client not found');
       }
 
@@ -584,6 +691,7 @@ export class Oauth2Service {
 
       // Renew refresh token if it's close to expiration
       if (tokenInfo.exp - now < REFRESH_TOKEN_RENEWAL_THRESHOLD) {
+        this.logger.debug(`Renewing refresh token - User: ${payload.user_id}`);
         const refreshToken = await this.generateRefreshToken(
           payload.user_id,
           client,
@@ -592,6 +700,10 @@ export class Oauth2Service {
         response.refresh_token_expires_in =
           refreshToken.refresh_token_expires_in;
       }
+
+      this.logger.log(
+        `Refresh token exchange successful - User: ${payload.user_id}, Client: ${client.id}`,
+      );
 
       return response;
     } catch (error) {
@@ -607,13 +719,20 @@ export class Oauth2Service {
     type: string,
     token: string,
   ): Promise<AccessTokenInfo> {
+    this.logger.debug(`Getting access token info - Type: ${type}`);
+
     const payload = (await this.verifyAuthorization(type, token)).bearer;
 
     if (!payload) {
+      this.logger.warn('Invalid token payload');
       throw new ConflictException('Invalid token payload');
     }
 
     const tokenInfo = this.jwtService.decode(token) as { exp: number };
+
+    this.logger.debug(
+      `Access token info retrieved - User: ${payload.user_id}, App: ${payload.app_id}`,
+    );
 
     return {
       id: payload.user_id,
@@ -626,9 +745,12 @@ export class Oauth2Service {
    * Gets user information with scope validation
    */
   async getUserInfo(type: string, token: string): Promise<UserInfoResponse> {
+    this.logger.debug(`Getting user info - Type: ${type}`);
+
     const authInfo = await this.verifyAuthorization(type, token);
 
     if (type !== 'Bearer' || !authInfo.bearer) {
+      this.logger.warn(`Invalid authorization type: ${type}`);
       throw new ConflictException('Invalid authorization');
     }
 
@@ -645,6 +767,9 @@ export class Oauth2Service {
       });
 
     if (!connect) {
+      this.logger.warn(
+        `Connection not found - User: ${userId}, Client: ${appId}`,
+      );
       throw new ConflictException('Connection not found');
     }
 
@@ -653,6 +778,10 @@ export class Oauth2Service {
     connect.agreed.forEach((item) => {
       agreed[`debuggers_acc.${item.item}`] = connect.user[item.item];
     });
+
+    this.logger.debug(
+      `User info retrieved - User: ${userId}, Scopes: ${Object.keys(agreed).join(',')}`,
+    );
 
     return {
       id: connect.user.id,
@@ -665,12 +794,16 @@ export class Oauth2Service {
    * Cleans up expired tokens and cache
    */
   async cleanup() {
+    this.logger.debug('Starting cleanup process');
     // Clear expired cache entries
     const now = Date.now();
+    let clearedCount = 0;
     for (const [key, value] of this.clientCache.entries()) {
       if (now - value.timestamp > this.CACHE_TTL) {
         this.clientCache.delete(key);
+        clearedCount++;
       }
     }
+    this.logger.log(`Cleanup completed - Cleared ${clearedCount} cached items`);
   }
 }

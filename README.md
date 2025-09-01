@@ -72,6 +72,9 @@ MAIL_PORT=587
 MAIL_USER=your-email@gmail.com
 MAIL_PASS=your-app-password
 MAIL_FROM=your-email@gmail.com
+
+CLOUDFLARE_ID=your-cloudflare-id
+CLOUDFLARE_SECRET=your-cloudflare-secret
 ```
 
 ## 실행하기

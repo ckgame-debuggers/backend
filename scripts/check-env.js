@@ -29,6 +29,10 @@ const requiredEnvVars = {
   // Application Configuration
   FRONT_URL: 'Frontend URL for CORS and email links',
   PORT: 'Application port number',
+
+  //Cloudflare Configuration
+  CLOUDFLARE_ID: 'Cloudflare id',
+  CLOUDFLARE_SECRET: 'Cloudflare api secret',
 };
 
 // Validate environment variables

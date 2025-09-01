@@ -15,6 +15,7 @@ import LoginDto from 'src/common/dto/auth/login.dto';
 import { Request, Response } from 'express';
 import { AuthGuard } from 'src/common/guards/auth.guard';
 import ResetPasswordDto from 'src/common/dto/auth/reset-password.dto';
+import { User } from 'src/common/decorator/get-user';
 
 @Controller('auth')
 export class AuthController {
@@ -96,10 +97,8 @@ export class AuthController {
 
   @Get('/authenticate')
   @UseGuards(AuthGuard)
-  async isAuthenticated(@Req() req: Request): Promise<any> {
+  async isAuthenticated(@User('id') userId: number): Promise<any> {
     this.logger.log('Checking if a user is authenticated');
-    const user: any = (req as any).user;
-
-    return user;
+    return this.authService.getUserInfo(userId);
   }
 }
