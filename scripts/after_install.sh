@@ -13,8 +13,14 @@ cd /home/ubuntu/debuggers-backend
 # Install Node.js if not already installed
 if ! command -v node &> /dev/null; then
     echo "Installing Node.js..."
-    curl -fsSL https://deb.nodesource.com/setup_18.x | sudo -E bash -
-    sudo apt-get install -y nodejs
+    if command -v apt-get &> /dev/null; then
+        sudo apt-get update -y
+        curl -fsSL https://deb.nodesource.com/setup_18.x | sudo -E bash -
+        sudo DEBIAN_FRONTEND=noninteractive apt-get install -y nodejs
+    elif command -v yum &> /dev/null; then
+        curl -fsSL https://rpm.nodesource.com/setup_18.x | sudo -E bash -
+        sudo yum install -y nodejs
+    fi
 fi
 
 # Install pnpm if not already installed
@@ -33,8 +39,7 @@ echo "Installing dependencies..."
 pnpm install --frozen-lockfile
 
 # Rebuild native modules for current architecture
-echo "Rebuilding native modules..."
-pnpm rebuild
+# Skipping pnpm rebuild to shorten AfterInstall time and avoid long hangs
 
 # Build the application
 echo "Building application..."
