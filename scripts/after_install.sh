@@ -55,3 +55,57 @@ if ! command -v pm2 &> /dev/null; then
 fi
 
 echo "AfterInstall script completed successfully." 
+
+# --- Ensure cron is installed, enabled, and cleanup job is registered ---
+echo "Configuring cron for CodeDeploy archive cleanup..."
+
+# Detect package manager and cron service name
+CRON_SERVICE=""
+if command -v apt-get &> /dev/null; then
+    # Debian/Ubuntu
+    if ! dpkg -s cron &> /dev/null; then
+        echo "Installing cron..."
+        sudo apt-get update -y
+        sudo apt-get install -y cron
+    fi
+    CRON_SERVICE="cron"
+elif command -v yum &> /dev/null; then
+    # RHEL/CentOS/Amazon Linux
+    if ! rpm -q cronie &> /dev/null; then
+        echo "Installing cronie..."
+        sudo yum install -y cronie
+    fi
+    CRON_SERVICE="crond"
+fi
+
+# Enable and start cron service
+if [ -n "$CRON_SERVICE" ]; then
+    if command -v systemctl &> /dev/null; then
+        sudo systemctl enable --now "$CRON_SERVICE" || true
+        sudo systemctl restart "$CRON_SERVICE" || true
+    else
+        sudo service "$CRON_SERVICE" start || true
+        sudo service "$CRON_SERVICE" restart || true
+    fi
+fi
+
+# Register daily cleanup job (idempotent)
+sudo bash -c 'cat > /etc/cron.d/codedeploy-clean <<"EOF"\
+SHELL=/bin/bash
+PATH=/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin
+# Daily 3AM: remove CodeDeploy archives older than 7 days
+0 3 * * * root find /opt/codedeploy-agent/deployment-root/deployment-archive -mindepth 1 -maxdepth 1 -type d -mtime +7 -exec rm -rf {} +
+EOF'
+sudo chmod 644 /etc/cron.d/codedeploy-clean || true
+sudo chown root:root /etc/cron.d/codedeploy-clean || true
+
+# Reload cron to pick up new job
+if [ -n "$CRON_SERVICE" ]; then
+    if command -v systemctl &> /dev/null; then
+        sudo systemctl restart "$CRON_SERVICE" || true
+    else
+        sudo service "$CRON_SERVICE" restart || true
+    fi
+fi
+
+echo "Cron configuration completed."
