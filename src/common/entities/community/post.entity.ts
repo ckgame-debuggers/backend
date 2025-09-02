@@ -45,6 +45,9 @@ export class CommunityPostEntity {
   @Column({ default: false })
   isDeleted: boolean;
 
+  @Column({ nullable: true })
+  deletedAt?: Date;
+
   @ManyToOne(() => CommunityBadgeEntity, (badge) => badge.posts, {
     nullable: true,
   })

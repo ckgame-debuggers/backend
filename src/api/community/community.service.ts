@@ -34,6 +34,7 @@ export class CommunityService {
    */
   async getCommunityUserInfo(userId: number): Promise<
     ResultType<{
+      userId: number;
       description: string;
       level: number;
       nextLevelExp: number;
@@ -91,6 +92,7 @@ export class CommunityService {
     }
 
     const res: {
+      userId: number;
       description: string;
       level: number;
       nextLevelExp: number;
@@ -100,6 +102,7 @@ export class CommunityService {
       banExpiresAt?: string;
       defaultBadge: CommunityBadgeEntity;
     } = {
+      userId: userInfo.id,
       description: userInfo.description,
       level,
       nextLevelExp: requiredExp,

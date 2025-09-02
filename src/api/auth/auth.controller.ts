@@ -95,6 +95,26 @@ export class AuthController {
     return await this.authService.resetPassword(resetPasswordDto);
   }
 
+  @Post('/logout')
+  @UseGuards(AuthGuard)
+  async logout(@Req() req: Request, @Res() res: Response) {
+    const refreshToken = req.cookies['rid'];
+    try {
+      if (refreshToken) {
+        await this.authService.revokeRefreshTokenByValue(refreshToken);
+      }
+    } catch (e) {
+      this.logger.warn('Failed to revoke refresh token on logout');
+    }
+    res.clearCookie('sid');
+    res.clearCookie('rid');
+    res.send({
+      status: 'success',
+      message: 'Logged out successfully',
+      timestamp: new Date(),
+    });
+  }
+
   @Get('/authenticate')
   @UseGuards(AuthGuard)
   async isAuthenticated(@User('id') userId: number): Promise<any> {

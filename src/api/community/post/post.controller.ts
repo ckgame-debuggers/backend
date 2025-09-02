@@ -5,6 +5,7 @@ import {
   Get,
   Param,
   ParseIntPipe,
+  Patch,
   Post,
   Put,
   UseGuards,
@@ -12,6 +13,7 @@ import {
 } from '@nestjs/common';
 import { PostService } from './post.service';
 import { AuthGuard } from 'src/common/guards/auth.guard';
+import { OptionalAuthGuard } from 'src/common/guards/optional-auth.guard';
 import { CommunityNewPostDto } from 'src/common/dto/community/post/new-post.dto';
 import { CommunityUpdatePostDto } from 'src/common/dto/community/post/update-post.dto';
 import { User } from 'src/common/decorator/get-user';
@@ -26,8 +28,12 @@ export class PostController {
   }
 
   @Get(':id')
-  async getPost(@Param('id', ParseIntPipe) postId: number) {
-    return await this.postService.getPost(postId);
+  @UseGuards(OptionalAuthGuard)
+  async getPost(
+    @Param('id', ParseIntPipe) postId: number,
+    @User('id') userId: number,
+  ) {
+    return await this.postService.getPost(postId, userId);
   }
 
   @Post()
@@ -39,7 +45,7 @@ export class PostController {
     return await this.postService.newPost(newPostDto, userId);
   }
 
-  @Put(':id')
+  @Patch(':id')
   @UseGuards(AuthGuard)
   async updatePost(
     @Param('id', ParseIntPipe) postId: number,
@@ -56,5 +62,23 @@ export class PostController {
     @User('id') userId: number,
   ) {
     return await this.postService.deletePost(postId, userId);
+  }
+
+  @Post(':id/like')
+  @UseGuards(AuthGuard)
+  async likePost(
+    @Param('id', ParseIntPipe) postId: number,
+    @User('id') userId: number,
+  ) {
+    return await this.postService.likePost(postId, userId);
+  }
+
+  @Post(':id/dislike')
+  @UseGuards(AuthGuard)
+  async dislikePost(
+    @Param('id', ParseIntPipe) postId: number,
+    @User('id') userId: number,
+  ) {
+    return await this.postService.dislikePost(postId, userId);
   }
 }

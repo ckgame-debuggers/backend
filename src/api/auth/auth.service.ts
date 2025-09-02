@@ -332,6 +332,12 @@ export class AuthService {
     }
   }
 
+  async revokeRefreshTokenByValue(value: string): Promise<void> {
+    const refreshRepository = this.dataSource.getRepository(RefreshEntity);
+    if (!value) return;
+    await refreshRepository.delete({ value });
+  }
+
   /**
    * Resets the user's password after verifying the email and certification code.
    * @param {ResetPasswordDto} resetPasswordDto - DTO containing email, certification code, and new password.

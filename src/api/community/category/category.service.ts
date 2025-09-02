@@ -1,7 +1,7 @@
 import { Injectable, NotFoundException } from '@nestjs/common';
 import { CommunityCategoryEntity } from 'src/common/entities/community/category.entity';
 import { CommunityPostEntity } from 'src/common/entities/community/post.entity';
-import { DataSource } from 'typeorm';
+import { DataSource, FindManyOptions } from 'typeorm';
 
 @Injectable()
 export class CategoryService {
@@ -15,7 +15,11 @@ export class CategoryService {
     const categoryRepository = this.dataSource.getRepository(
       CommunityCategoryEntity,
     );
-    const categories = await categoryRepository.find();
+    const categories = await categoryRepository.find({
+      where: {
+        permission: 0,
+      },
+    });
     return {
       status: 'success',
       message: 'Successfully retrieved categories',
@@ -56,6 +60,9 @@ export class CategoryService {
       },
       relations: {
         badge: true,
+      },
+      order: {
+        createdAt: 'DESC',
       },
       take: 15,
       skip: (page - 1) * 15,
