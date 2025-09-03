@@ -110,15 +110,17 @@ if [ -n "$CRON_SERVICE" ]; then
     fi
 fi
 
-# Register daily cleanup job (idempotent)
-sudo bash -c 'cat > /etc/cron.d/codedeploy-clean <<"EOF"\
+# Register daily cleanup jobs (idempotent)
+sudo bash -c 'cat > /etc/cron.d/debuggers-maintenance <<"EOF"\
 SHELL=/bin/bash
 PATH=/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin
+# Daily 2AM: flush pm2 logs to prevent log file growth
+0 2 * * * ubuntu /usr/bin/pm2 flush 2>/dev/null || true
 # Daily 3AM: remove CodeDeploy archives older than 7 days
 0 3 * * * root find /opt/codedeploy-agent/deployment-root/deployment-archive -mindepth 1 -maxdepth 1 -type d -mtime +7 -exec rm -rf {} +
 EOF'
-sudo chmod 644 /etc/cron.d/codedeploy-clean || true
-sudo chown root:root /etc/cron.d/codedeploy-clean || true
+sudo chmod 644 /etc/cron.d/debuggers-maintenance || true
+sudo chown root:root /etc/cron.d/debuggers-maintenance || true
 
 # Reload cron to pick up new job
 if [ -n "$CRON_SERVICE" ]; then
