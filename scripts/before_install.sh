@@ -4,6 +4,8 @@
 # This script runs before the application files are installed
 
 set -e
+# Suppress stdout to reduce CodeDeploy log size; keep stderr for errors
+exec 1>/dev/null
 
 echo "Starting BeforeInstall script..."
 

@@ -4,6 +4,8 @@
 # This script runs to stop the application before deployment
 
 set -e
+# Suppress stdout to reduce CodeDeploy log size; keep stderr for errors
+exec 1>/dev/null
 
 echo "Starting ApplicationStop script..."
 

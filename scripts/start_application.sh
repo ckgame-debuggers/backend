@@ -4,6 +4,8 @@
 # This script runs to start the application
 
 set -e
+# Suppress stdout to reduce CodeDeploy log size; keep stderr for errors
+exec 1>/dev/null
 cd /home/ubuntu/debuggers-backend
 
 echo "Starting ApplicationStart script..."
