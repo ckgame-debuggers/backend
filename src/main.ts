@@ -4,6 +4,12 @@ import { Logger, ValidationPipe } from '@nestjs/common';
 import cookieParser from 'cookie-parser';
 import { EnvConfigService } from './common/configs/env.config';
 import { config } from 'dotenv';
+import { webcrypto as nodeWebCrypto } from 'node:crypto';
+
+// Provide Web Crypto API on Node.js (Node < 20 doesn't expose global crypto by default in some environments)
+if (!(globalThis as any).crypto) {
+  (globalThis as any).crypto = nodeWebCrypto as unknown;
+}
 
 async function bootstrap() {
   const logger = new Logger('Initializer');

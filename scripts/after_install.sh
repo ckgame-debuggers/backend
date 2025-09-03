@@ -36,16 +36,30 @@ echo "Cleaning previous installations..."
 rm -rf node_modules
 rm -rf dist
 
-# Install dependencies
-echo "Installing dependencies..."
-pnpm install --no-frozen-lockfile
+# Install dependencies (include dev deps for TypeScript build and @types/node)
+ORIGINAL_NODE_ENV="${NODE_ENV:-}"
+export NODE_ENV=development
+PNPM_FLAGS="--no-frozen-lockfile --prod=false --prefer-offline --child-concurrency=2"
+echo "Installing dependencies (with devDependencies for build)..."
+pnpm install $PNPM_FLAGS || pnpm install --no-frozen-lockfile --prod=false --child-concurrency=1
 
 # Rebuild native modules for current architecture
 # Skipping pnpm rebuild to shorten AfterInstall time and avoid long hangs
 
-# Build the application
+# Build the application (lower memory usage)
+export NODE_OPTIONS="${NODE_OPTIONS:---max-old-space-size=512}"
 echo "Building application..."
 pnpm run build
+
+# Prune devDependencies after build to save space for runtime
+echo "Pruning devDependencies for production runtime..."
+export NODE_ENV=production
+pnpm prune --prod || true
+if [ -n "$ORIGINAL_NODE_ENV" ]; then
+    export NODE_ENV="$ORIGINAL_NODE_ENV"
+else
+    unset NODE_ENV
+fi
 
 # Set proper permissions for the built application
 sudo chown -R ubuntu:ubuntu /home/ubuntu/debuggers-backend
