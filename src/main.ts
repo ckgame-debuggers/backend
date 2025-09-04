@@ -5,7 +5,6 @@ import { Logger, ValidationPipe } from '@nestjs/common';
 import cookieParser from 'cookie-parser';
 import { EnvConfigService } from './common/configs/env.config';
 import { config } from 'dotenv';
-import * as express from 'express';
 
 async function bootstrap() {
   const logger = new Logger('Initializer');
@@ -20,10 +19,6 @@ async function bootstrap() {
     bodyParser: true,
     rawBody: true,
   });
-
-  // Increase body size limits for file uploads and large payloads
-  app.use('/api', express.json({ limit: '10mb' }));
-  app.use('/api', express.urlencoded({ limit: '10mb', extended: true }));
 
   app.useGlobalPipes(new ValidationPipe());
 
